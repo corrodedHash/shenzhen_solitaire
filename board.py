@@ -1,6 +1,6 @@
 """Contains board class"""
 import enum
-from typing import Union, Tuple, List
+from typing import Union, List, Dict, Optional, NewType
 from dataclasses import dataclass
 
 
@@ -34,19 +34,14 @@ class Position(enum.Enum):
     Goal = enum.auto()
 
 
-class BunkerStatus(enum.Enum):
-    """States a bunker can be in, if it not holding a card"""
-    Empty = enum.auto()
-    Dragon = enum.auto()
-
+KilledDragon = NewType('KilledDragon', SpecialCard)
 
 @dataclass
 class Board:
     """Solitaire board"""
-    field: List[List[Card]] = []
-    bunker: Tuple[Union[BunkerStatus, Card],
-                  Union[BunkerStatus, Card],
-                  Union[BunkerStatus, Card]] = (BunkerStatus.Empty,
-                                                BunkerStatus.Empty, BunkerStatus.Empty,)
-    goal: List[Tuple[NumberCard.Suit, int]] = []
+    field: List[List[Card]] = [[]] * 8
+    bunker: List[Union[KilledDragon, Optional[Card]]] = [None] * 3
+    goal: Dict[NumberCard.Suit, int] = {NumberCard.Suit.Red: 0,
+                                        NumberCard.Suit.Green: 0,
+                                        NumberCard.Suit.Black: 0}
     flowerGone: bool = False
