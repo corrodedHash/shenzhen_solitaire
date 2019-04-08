@@ -114,15 +114,58 @@ class Board:
             yield DragonKillAction(dragon=dragon, source_stacks=source_stacks,
                                    destination_bunker_id=destination_bunker_id)
 
-    def possible_move_actions(self) -> Iterator[MoveAction]:
-        """Enumerate all possible move actions"""
+    def possible_bunkerize_actions(self) -> Iterator[MoveAction]:
+        """Enumerates all possible card moves from the field to the bunker"""
+        open_bunker_list = [i for i, x in enumerate(
+            self.bunker) if x == BunkerStatus.Empty]
+
+        if not open_bunker_list:
+            return
+
+        open_bunker = open_bunker_list[0]
+        for index, stack in enumerate(self.field):
+            if not stack:
+                continue
+            yield MoveAction(card=stack[-1],
+                             source_position=Position.Field,
+                             source_id=index,
+                             destination_position=Position.Bunker,
+                             destination_id=open_bunker)
+
+    def possible_debunkerize_actions(self) -> Iterator[MoveAction]:
+        """Enumerates all possible card moves from the bunker to the field"""
+        bunker_number_cards = [(i, x) for i, x in enumerate(
+            self.bunker) if isinstance(x, NumberCard)]
+        for index, card in bunker_number_cards:
+            for other_index, other_stack in enumerate(self.field):
+                if not other_stack:
+                    continue
+                if not isinstance(other_stack[-1], NumberCard):
+                    continue
+                if other_stack[-1].suit == card.suit:
+                    continue
+                if other_stack[-1].number != card.number + 1:
+                    continue
+                yield MoveAction(card=card,
+                                 source_position=Position.Bunker,
+                                 source_id=index,
+                                 destination_position=Position.Field,
+                                 destination_id=other_index)
+
+    def possible_goal_move_actions(self) -> Iterator[MoveAction]:
+        """Enumerates all possible moves from anywhere to the goal"""
+
+
+
+    def possible_field_move_actions(self) -> Iterator[MoveAction]:
+        """Enumerate all possible move actions from one field stack to another field stack"""
         for index, stack in enumerate(self.field):
             if not stack:
                 continue
             if not isinstance(stack[-1], NumberCard):
                 continue
             for other_index, other_stack in enumerate(self.field):
-                if not stack:
+                if not other_stack:
                     continue
                 if not isinstance(other_stack[-1], NumberCard):
                     continue
@@ -136,18 +179,13 @@ class Board:
                                  destination_position=Position.Field,
                                  destination_id=other_index)
 
-
-        open_bunker_list = [i for i, x in enumerate(self.bunker) if x == BunkerStatus.Empty]
-        if not open_bunker_list:
-            return
-        open_bunker = open_bunker_list[0]
-
-
     def possible_actions(self) -> Iterator[Action]:
         """Enumerate all possible actions on the current board"""
         yield from self.possible_huakill_action()
         yield from self.possible_dragonkill_actions()
-        yield from self.possible_move_actions()
+        yield from self.possible_debunkerize_actions()
+        yield from self.possible_field_move_actions()
+        yield from self.possible_bunkerize_actions()
 
 
 class SolitaireSolver:
