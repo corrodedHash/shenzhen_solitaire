@@ -39,8 +39,8 @@ def main() -> None:
     ]
 
     t.field[3] = [
-        SpecialCard.Zhong,
         SpecialCard.Bai,
+        SpecialCard.Zhong,
         NumberCard(NumberCard.Suit.Red, 3),
         NumberCard(NumberCard.Suit.Red, 7),
         NumberCard(NumberCard.Suit.Green, 6),
@@ -79,7 +79,19 @@ def main() -> None:
     ]
 
     print(t.check_correct())
-    print(*list(board_possibilities.possible_actions(t)), sep='\n')
+    step = list(board_possibilities.possible_actions(t))
+    print(*step, sep="\n")
+    sequence = [
+        0, 4, 0, 1, 0, 0, 8, 0, 1, 3, 0, 9, 0, 2, 0, 1, 1, 1, 2, 0, 2, 1, 6,
+        12, 0, 0, 1, 0, 0, 17, 11, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    ]
+    for x in sequence:
+        print("Executing " + str(step[x]))
+        step[x].apply(t)
+        print(t.goal)
+        step = list(board_possibilities.possible_actions(t))
+        print(*enumerate(step), sep="\n")
+        print()
 
 
 if __name__ == "__main__":

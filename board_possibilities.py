@@ -1,5 +1,5 @@
 """Contains function to iterate different kinds of possible actions"""
-from typing import Iterator
+from typing import Iterator, List, Tuple
 import board
 import board_actions
 
@@ -9,7 +9,7 @@ def possible_huakill_action(
 ) -> Iterator[board_actions.HuaKillAction]:
     """Check if the flowercard can be eliminated"""
     for index, stack in enumerate(search_board.field):
-        if stack[-1] == board.SpecialCard.Hua:
+        if stack and stack[-1] == board.SpecialCard.Hua:
             yield board_actions.HuaKillAction(source_field_id=index)
 
 
@@ -120,29 +120,54 @@ def possible_goal_move_actions(
             yield board_actions.GoalAction(
                 card=stack, source_id=index, source_position=source
             )
-        break
+            break
+
+
+def _can_stack(bottom: board.Card, top: board.Card) -> bool:
+    if not isinstance(bottom, board.NumberCard):
+        return False
+    if not isinstance(top, board.NumberCard):
+        return False
+    if bottom.suit == top.suit:
+        return False
+    if bottom.number != top.number + 1:
+        return False
+    return True
+
+
+def _get_cardstacks(search_board: board.Board) -> List[List[board.Card]]:
+    """Returns all cards on one stack that can be moved at once"""
+    result: List[List[board.Card]] = []
+    for stack in search_board.field:
+        result.append([])
+        if not stack:
+            continue
+        result[-1].append(stack[-1])
+        for card in stack[-2::-1]:
+            if not _can_stack(card, result[-1][0]):
+                break
+            if not isinstance(card, board.NumberCard):
+                break
+            result[-1].insert(0, card)
+    return result
 
 
 def possible_field_move_actions(
     search_board: board.Board
 ) -> Iterator[board_actions.MoveAction]:
     """Enumerate all possible move actions from one field stack to another field stack"""
-    for index, stack in enumerate(search_board.field):
+    for index, stack in enumerate(_get_cardstacks(search_board)):
         if not stack:
             continue
-        if not isinstance(stack[-1], board.NumberCard):
-            continue
-        for other_index, other_stack in enumerate(search_board.field):
-            if other_stack:
-                if not isinstance(other_stack[-1], board.NumberCard):
-                    continue
-                if other_stack[-1].suit == stack[-1].suit:
-                    continue
-                if other_stack[-1].number != stack[-1].number + 1:
-                    continue
-            yield board_actions.MoveAction(
-                cards=[stack[-1]], source_id=index, destination_id=other_index
-            )
+        # TODO: sort all substacks by length
+        for substack in (stack[i:] for i in range(len(stack))):
+            for other_index, other_stack in enumerate(search_board.field):
+                if other_stack:
+                    if not _can_stack(other_stack[-1], substack[0]):
+                        continue
+                yield board_actions.MoveAction(
+                    cards=substack, source_id=index, destination_id=other_index
+                )
 
 
 def possible_actions(search_board: board.Board) -> Iterator[board_actions.Action]:

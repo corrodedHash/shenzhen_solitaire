@@ -90,12 +90,14 @@ class MoveAction:
             assert action_board.field[source][stack_offset] == card
 
         if action_board.field[dest]:
-            dest_card = action_board.field[dest]
+            dest_card = action_board.field[dest][-1]
             if not isinstance(dest_card, board.NumberCard):
                 raise AssertionError()
-            if dest_card.suit != self.cards[0].suit:
+            if not all(isinstance(x, board.NumberCard) for x in self.cards):
                 raise AssertionError()
-            if dest_card.number + 1 == self.cards[0].number:
+            if dest_card.suit == self.cards[0].suit:
+                raise AssertionError()
+            if dest_card.number != self.cards[0].number + 1:
                 raise AssertionError()
 
         action_board.field[source] = action_board.field[source][: -len(self.cards)]
@@ -160,7 +162,7 @@ class HuaKillAction:
     def apply(self, action_board: board.Board) -> None:
         """Do action"""
         assert not action_board.flowerGone
-        assert action_board.field[self.source_field_id] == board.SpecialCard.Hua
+        assert action_board.field[self.source_field_id][-1] == board.SpecialCard.Hua
         action_board.field[self.source_field_id].pop()
         action_board.flowerGone = True
 
