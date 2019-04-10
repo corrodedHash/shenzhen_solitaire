@@ -8,10 +8,14 @@ import itertools
 class SpecialCard(enum.Enum):
     """Different types of special cards"""
 
-    Zhong = enum.auto()
-    Bai = enum.auto()
-    Fa = enum.auto()
-    Hua = enum.auto()
+    Zhong = 0
+    Bai = 1
+    Fa = 2
+    Hua = 3
+
+    def identifier(self) -> int:
+        """Returns unique identifier representing this card"""
+        return int(self.value)
 
 
 @dataclass(frozen=True)
@@ -21,12 +25,16 @@ class NumberCard:
     class Suit(enum.Enum):
         """Different colors number cards can have"""
 
-        Red = enum.auto()
-        Green = enum.auto()
-        Black = enum.auto()
+        Red = 0
+        Green = 1
+        Black = 2
 
     suit: Suit
-    number: int
+    number: int  # [1 - 9]
+
+    def identifier(self) -> int:
+        """Returns unique identifier representing this card"""
+        return int(self.number - 1 + 9 ** int(self.suit.value))
 
 
 Card = Union[NumberCard, SpecialCard]
@@ -45,14 +53,52 @@ class Board:
 
     def __init__(self) -> None:
         self.field: List[List[Card]] = [[]] * 8
-        self.bunker: List[Union[Tuple[SpecialCard, int], Optional[Card]]] = [None] * 3
+        self.bunker: List[Union[Tuple[SpecialCard, int],
+                                Optional[Card]]] = [None] * 3
         self.goal: Dict[NumberCard.Suit, int] = {
             NumberCard.Suit.Red: 0,
             NumberCard.Suit.Green: 0,
             NumberCard.Suit.Black: 0,
         }
+        self.flower_gone: bool = False
 
-    flowerGone: bool = False
+    def state_identifier(self) -> int:
+        """Returns a unique identifier to represent the board state"""
+        result: int = 0
+        for card in self.bunker:
+            result <<= 2
+            if isinstance(card, tuple):
+                result |= 0
+                result <<= 2
+                result |= card[0].identifier()  # pylint: disable=E1136
+            elif card is None:
+                result |= 1
+            else:
+                result |= 2
+                result <<= 5
+                result |= card.identifier()
+
+
+        result <<= 1
+        if self.flower_gone:
+            result |= 1
+
+        for _, goal_count in self.goal.items():
+            result <<= 4
+            result |= goal_count
+
+        # Max stack size is 13 (4 random cards from the start, plus a stack from 9 to 1]
+        # So 4 bits are sufficient
+        for stack in self.field:
+            assert len(stack) == len(stack) & 0b1111
+            result <<= 4
+            result |= len(stack)
+
+        for field_card in itertools.chain.from_iterable(self.field):
+            result <<= 5
+            result |= field_card.identifier()
+
+        return 0
 
     def check_correct(self) -> bool:
         """Returns true, if the board is in a valid state"""
@@ -68,13 +114,12 @@ class Board:
             SpecialCard.Hua: 0,
         }
 
-        if self.flowerGone:
+        if self.flower_gone:
             special_cards[SpecialCard.Hua] += 1
 
         for card in itertools.chain(
-            self.bunker,
-            itertools.chain.from_iterable(stack for stack in self.field if stack),
-        ):
+            self.bunker, itertools.chain.from_iterable(
+                stack for stack in self.field if stack), ):
             if isinstance(card, tuple):
                 special_cards[card[0]] += 4  # pylint: disable=E1136
             elif isinstance(card, SpecialCard):

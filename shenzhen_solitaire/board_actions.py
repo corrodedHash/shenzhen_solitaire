@@ -91,9 +91,11 @@ class MoveAction:
 
         if action_board.field[dest]:
             dest_card = action_board.field[dest][-1]
+            if not all(isinstance(x, board.NumberCard) for x in self.cards):
+                raise AssertionError()
             if not isinstance(dest_card, board.NumberCard):
                 raise AssertionError()
-            if not all(isinstance(x, board.NumberCard) for x in self.cards):
+            if not isinstance(self.cards[0], board.NumberCard):
                 raise AssertionError()
             if dest_card.suit == self.cards[0].suit:
                 raise AssertionError()
@@ -161,16 +163,16 @@ class HuaKillAction:
 
     def apply(self, action_board: board.Board) -> None:
         """Do action"""
-        assert not action_board.flowerGone
+        assert not action_board.flower_gone
         assert action_board.field[self.source_field_id][-1] == board.SpecialCard.Hua
         action_board.field[self.source_field_id].pop()
-        action_board.flowerGone = True
+        action_board.flower_gone = True
 
     def undo(self, action_board: board.Board) -> None:
         """Undo action"""
-        assert action_board.flowerGone
+        assert action_board.flower_gone
         action_board.field[self.source_field_id].append(board.SpecialCard.Hua)
-        action_board.flowerGone = False
+        action_board.flower_gone = False
 
 
 Action = Union[MoveAction, DragonKillAction, HuaKillAction, BunkerizeAction, GoalAction]

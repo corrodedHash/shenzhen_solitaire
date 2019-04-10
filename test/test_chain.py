@@ -1,7 +1,7 @@
 """Contains tests for chain module"""
 import unittest
 
-from .context import shenzhen_solitaire  # pylint: disable=unused-import
+from . import context   # pylint: disable=unused-import
 from shenzhen_solitaire.board import NumberCard, SpecialCard, Board  # pylint: disable=wrong-import-order
 from shenzhen_solitaire import board_possibilities  # pylint: disable=wrong-import-order
 
