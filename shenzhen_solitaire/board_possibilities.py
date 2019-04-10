@@ -1,7 +1,7 @@
 """Contains function to iterate different kinds of possible actions"""
-from typing import Iterator, List, Tuple
-import board
-import board_actions
+from typing import Iterator, List
+from . import board
+from . import board_actions
 
 
 def possible_huakill_action(

@@ -1,7 +1,7 @@
 """Contains actions that can be used on the board"""
 from typing import List, Tuple, Union
 from dataclasses import dataclass
-import board
+from . import board
 
 
 @dataclass

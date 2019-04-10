@@ -1,7 +1,6 @@
 """Contains board class"""
 import enum
 from typing import Union, List, Dict, Optional, Set, Tuple
-import dataclasses
 from dataclasses import dataclass
 import itertools
 
