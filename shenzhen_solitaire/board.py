@@ -62,6 +62,18 @@ class Board:
         }
         self.flower_gone: bool = False
 
+    def solved(self) -> bool:
+        """Returns true if the board is solved"""
+        if any(x != 9 for x in self.goal.values()):
+            return False
+        if any(not isinstance(x, tuple) for x in self.bunker):
+            return False
+        if not self.flower_gone:
+            return False
+        assert all(not x for x in self.field)
+        return True
+
+    @property
     def state_identifier(self) -> int:
         """Returns a unique identifier to represent the board state"""
         result: int = 0
@@ -98,7 +110,7 @@ class Board:
             result <<= 5
             result |= field_card.identifier()
 
-        return 0
+        return result 
 
     def check_correct(self) -> bool:
         """Returns true, if the board is in a valid state"""

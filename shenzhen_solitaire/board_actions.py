@@ -1,7 +1,15 @@
 """Contains actions that can be used on the board"""
 from typing import List, Tuple, Union
 from dataclasses import dataclass
+import itertools
 from . import board
+
+
+class Action:
+    def apply(self, action_board: board.Board) -> None:
+        pass
+    def undo(self, action_board: board.Board) -> None:
+        pass
 
 
 @dataclass
@@ -45,20 +53,22 @@ class BunkerizeAction:
     """Move card from bunker to field"""
 
     card: board.Card
-    source_id: int
-    destination_id: int
+    bunker_id: int
+    field_id: int
     to_bunker: bool
+    _before_state: int = 0
+    _after_state: int = 0
 
     def _move_from_bunker(self, action_board: board.Board) -> None:
-        assert action_board.bunker[self.source_id] == self.card
-        action_board.bunker[self.source_id] = None
-        action_board.field[self.destination_id].append(self.card)
+        assert action_board.bunker[self.bunker_id] == self.card
+        action_board.bunker[self.bunker_id] = None
+        action_board.field[self.field_id].append(self.card)
 
     def _move_to_bunker(self, action_board: board.Board) -> None:
-        assert action_board.field[self.source_id][-1] == self.card
-        assert action_board.bunker[self.destination_id] is None
-        action_board.bunker[self.destination_id] = self.card
-        action_board.field[self.source_id].pop()
+        assert action_board.field[self.field_id][-1] == self.card
+        assert action_board.bunker[self.bunker_id] is None
+        action_board.bunker[self.bunker_id] = self.card
+        action_board.field[self.field_id].pop()
 
     def apply(self, action_board: board.Board) -> None:
         """Do action"""
@@ -82,6 +92,8 @@ class MoveAction:
     cards: List[board.Card]
     source_id: int
     destination_id: int
+    _before_state: int = 0
+    _after_state: int = 0
 
     def _shift(
             self,
@@ -89,6 +101,15 @@ class MoveAction:
             source: int,
             dest: int) -> None:
         """Shift a card from the field id 'source' to field id 'dest'"""
+
+        print(f"Incoming shift from {source} to {dest}")
+        print(
+            *
+            list(itertools.zip_longest(
+                action_board.field[source][::-1],
+                self.cards[::-1]))[::-1],
+            sep="\n")
+        print("--- GO ---")
 
         for stack_offset, card in enumerate(
                 self.cards, start=-len(self.cards)):
@@ -107,17 +128,37 @@ class MoveAction:
             if dest_card.number != self.cards[0].number + 1:
                 raise AssertionError()
 
+        print(
+            *
+            itertools.zip_longest(
+                action_board.field[source],
+                action_board.field[dest]),
+            sep="\n")
         action_board.field[source] = action_board.field[
             source][:-len(self.cards)]
         action_board.field[dest].extend(self.cards)
+        print()
+        print(
+            *
+            itertools.zip_longest(
+                action_board.field[source],
+                action_board.field[dest]),
+            sep="\n")
+        print()
+        print()
 
     def apply(self, action_board: board.Board) -> None:
         """Do action"""
+        self._before_state = action_board.state_identifier
         self._shift(action_board, self.source_id, self.destination_id)
+        self._after_state = action_board.state_identifier
 
     def undo(self, action_board: board.Board) -> None:
         """Undo action"""
+        print("Undo shift")
+        assert action_board.state_identifier == self._after_state
         self._shift(action_board, self.destination_id, self.source_id)
+        assert action_board.state_identifier == self._before_state
 
 
 @dataclass
