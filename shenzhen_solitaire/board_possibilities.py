@@ -142,7 +142,6 @@ def _can_stack(bottom: board.Card, top: board.Card) -> bool:
         return False
     if bottom.number != top.number + 1:
         return False
-    print(f"{bottom.number} and {top.number} can stack")
     return True
 
 
@@ -160,8 +159,6 @@ def _get_cardstacks(search_board: board.Board) -> List[List[board.Card]]:
             if not isinstance(card, board.NumberCard):
                 break
             result[-1].insert(0, card)
-    print(f"Cardstack {search_board.state_identifier}:")
-    print(*result, sep='\n')
     return result
 
 
@@ -170,20 +167,25 @@ def possible_field_move_actions(
 ) -> Iterator[board_actions.MoveAction]:
     """Enumerate all possible move actions
     from one field stack to another field stack"""
+    first_empty_field_id = -1
     my_id = search_board.state_identifier
     for index, stack in enumerate(_get_cardstacks(search_board)):
         if not stack:
             continue
-        print(f"{index}: {stack}")
         # TODO: sort all substacks by length
         for substack in (stack[i:] for i in range(len(stack))):
             for other_index, other_stack in enumerate(search_board.field):
-                print(f"{index} - {other_index}: \n\t{substack} \n\t{other_stack}")
                 if index == other_index:
                     continue
                 if other_stack:
                     if not _can_stack(other_stack[-1], substack[0]):
                         continue
+                elif first_empty_field_id == -1:
+                    first_empty_field_id = other_index
+                elif other_index != first_empty_field_id:
+                    continue
+                elif len(substack) == len(search_board.field[index]):
+                    continue
                 assert search_board.state_identifier == my_id
                 yield board_actions.MoveAction(
                     cards=substack, source_id=index, destination_id=other_index
