@@ -78,7 +78,6 @@ class Board:
                 result <<= 5
                 result |= card.identifier()
 
-
         result <<= 1
         if self.flower_gone:
             result |= 1
@@ -87,7 +86,8 @@ class Board:
             result <<= 4
             result |= goal_count
 
-        # Max stack size is 13 (4 random cards from the start, plus a stack from 9 to 1]
+        # Max stack size is 13
+        # (4 random cards from the start, plus a stack from 9 to 1)
         # So 4 bits are sufficient
         for stack in self.field:
             assert len(stack) == len(stack) & 0b1111
@@ -118,8 +118,8 @@ class Board:
             special_cards[SpecialCard.Hua] += 1
 
         for card in itertools.chain(
-            self.bunker, itertools.chain.from_iterable(
-                stack for stack in self.field if stack), ):
+                self.bunker, itertools.chain.from_iterable(
+                    stack for stack in self.field if stack), ):
             if isinstance(card, tuple):
                 special_cards[card[0]] += 4  # pylint: disable=E1136
             elif isinstance(card, SpecialCard):

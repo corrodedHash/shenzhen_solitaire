@@ -83,10 +83,15 @@ class MoveAction:
     source_id: int
     destination_id: int
 
-    def _shift(self, action_board: board.Board, source: int, dest: int) -> None:
+    def _shift(
+            self,
+            action_board: board.Board,
+            source: int,
+            dest: int) -> None:
         """Shift a card from the field id 'source' to field id 'dest'"""
 
-        for stack_offset, card in enumerate(self.cards, start=-len(self.cards)):
+        for stack_offset, card in enumerate(
+                self.cards, start=-len(self.cards)):
             assert action_board.field[source][stack_offset] == card
 
         if action_board.field[dest]:
@@ -102,7 +107,8 @@ class MoveAction:
             if dest_card.number != self.cards[0].number + 1:
                 raise AssertionError()
 
-        action_board.field[source] = action_board.field[source][: -len(self.cards)]
+        action_board.field[source] = action_board.field[
+            source][:-len(self.cards)]
         action_board.field[dest].extend(self.cards)
 
     def apply(self, action_board: board.Board) -> None:
@@ -143,7 +149,8 @@ class DragonKillAction:
 
     def undo(self, action_board: board.Board) -> None:
         """Undo action"""
-        assert action_board.bunker[self.destination_bunker_id] == (self.dragon, 4)
+        assert action_board.bunker[self.destination_bunker_id] == (
+            self.dragon, 4)
         assert len(self.source_stacks) == 4
         for position, index in self.source_stacks:
             if position == board.Position.Field:
@@ -164,7 +171,8 @@ class HuaKillAction:
     def apply(self, action_board: board.Board) -> None:
         """Do action"""
         assert not action_board.flower_gone
-        assert action_board.field[self.source_field_id][-1] == board.SpecialCard.Hua
+        assert (action_board.field[self.source_field_id][-1]
+                == board.SpecialCard.Hua)
         action_board.field[self.source_field_id].pop()
         action_board.flower_gone = True
 
@@ -175,4 +183,5 @@ class HuaKillAction:
         action_board.flower_gone = False
 
 
-Action = Union[MoveAction, DragonKillAction, HuaKillAction, BunkerizeAction, GoalAction]
+Action = Union[MoveAction, DragonKillAction,
+               HuaKillAction, BunkerizeAction, GoalAction]

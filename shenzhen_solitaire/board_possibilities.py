@@ -5,7 +5,7 @@ from . import board_actions
 
 
 def possible_huakill_action(
-    search_board: board.Board
+        search_board: board.Board
 ) -> Iterator[board_actions.HuaKillAction]:
     """Check if the flowercard can be eliminated"""
     for index, stack in enumerate(search_board.field):
@@ -14,7 +14,7 @@ def possible_huakill_action(
 
 
 def possible_dragonkill_actions(
-    search_board: board.Board
+        search_board: board.Board
 ) -> Iterator[board_actions.DragonKillAction]:
     """Enumerate all possible dragon kills"""
     possible_dragons = [
@@ -30,7 +30,8 @@ def possible_dragonkill_actions(
         possible_dragons = new_possible_dragons
 
     for dragon in possible_dragons:
-        bunker_dragons = [i for i, d in enumerate(search_board.bunker) if d == dragon]
+        bunker_dragons = [i for i, d in
+                          enumerate(search_board.bunker) if d == dragon]
         field_dragons = [
             i for i, f in enumerate(search_board.field) if f if f[-1] == dragon
         ]
@@ -45,7 +46,8 @@ def possible_dragonkill_actions(
             ][0]
 
         source_stacks = [(board.Position.Bunker, i) for i in bunker_dragons]
-        source_stacks.extend([(board.Position.Field, i) for i in field_dragons])
+        source_stacks.extend([(board.Position.Field, i)
+                              for i in field_dragons])
 
         yield board_actions.DragonKillAction(
             dragon=dragon,
@@ -55,10 +57,12 @@ def possible_dragonkill_actions(
 
 
 def possible_bunkerize_actions(
-    search_board: board.Board
+        search_board: board.Board
 ) -> Iterator[board_actions.BunkerizeAction]:
     """Enumerates all possible card moves from the field to the bunker"""
-    open_bunker_list = [i for i, x in enumerate(search_board.bunker) if x is None]
+    open_bunker_list = [
+        i for i, x in enumerate(
+            search_board.bunker) if x is None]
 
     if not open_bunker_list:
         return
@@ -68,12 +72,15 @@ def possible_bunkerize_actions(
         if not stack:
             continue
         yield board_actions.BunkerizeAction(
-            card=stack[-1], source_id=index, destination_id=open_bunker, to_bunker=True
+            card=stack[-1],
+            source_id=index,
+            destination_id=open_bunker,
+            to_bunker=True
         )
 
 
 def possible_debunkerize_actions(
-    search_board: board.Board
+        search_board: board.Board
 ) -> Iterator[board_actions.BunkerizeAction]:
     """Enumerates all possible card moves from the bunker to the field"""
     bunker_number_cards = [
@@ -92,12 +99,15 @@ def possible_debunkerize_actions(
             if other_stack[-1].number != card.number + 1:
                 continue
             yield board_actions.BunkerizeAction(
-                card=card, source_id=index, destination_id=other_index, to_bunker=False
+                card=card,
+                source_id=index,
+                destination_id=other_index,
+                to_bunker=False
             )
 
 
 def possible_goal_move_actions(
-    search_board: board.Board
+        search_board: board.Board
 ) -> Iterator[board_actions.GoalAction]:
     """Enumerates all possible moves from anywhere to the goal"""
     field_cards = [
@@ -153,9 +163,10 @@ def _get_cardstacks(search_board: board.Board) -> List[List[board.Card]]:
 
 
 def possible_field_move_actions(
-    search_board: board.Board
+        search_board: board.Board
 ) -> Iterator[board_actions.MoveAction]:
-    """Enumerate all possible move actions from one field stack to another field stack"""
+    """Enumerate all possible move actions
+    from one field stack to another field stack"""
     for index, stack in enumerate(_get_cardstacks(search_board)):
         if not stack:
             continue
@@ -170,7 +181,8 @@ def possible_field_move_actions(
                 )
 
 
-def possible_actions(search_board: board.Board) -> Iterator[board_actions.Action]:
+def possible_actions(
+        search_board: board.Board) -> Iterator[board_actions.Action]:
     """Enumerate all possible actions on the current search_board"""
     yield from possible_huakill_action(search_board)
     yield from possible_dragonkill_actions(search_board)
