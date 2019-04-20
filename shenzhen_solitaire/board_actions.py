@@ -177,6 +177,7 @@ class DragonKillAction(Action):
         assert action_board.bunker[self.destination_bunker_id] == (
             self.dragon, 4)
         assert len(self.source_stacks) == 4
+        action_board.bunker[self.destination_bunker_id] = None
         for position, index in self.source_stacks:
             if position == board.Position.Field:
                 action_board.field[index].append(self.dragon)
@@ -184,7 +185,6 @@ class DragonKillAction(Action):
                 action_board.bunker[index] = self.dragon
             else:
                 raise RuntimeError("Can only kill dragons in field and bunker")
-        action_board.bunker[self.destination_bunker_id] = None
 
 
 @dataclass

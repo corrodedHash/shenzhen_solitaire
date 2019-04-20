@@ -5,8 +5,8 @@ from .boards import my_board
 
 def main() -> None:
     A = solver.SolitaireSolver(my_board)
-    for _, B in zip(range(1), A.solve()):
-        print(*B, sep='\n')
+    for _, B in zip(range(100), A.solve()):
+        #print(*B, sep='\n')
         print(len(B))
 
 if __name__ == "__main__":
