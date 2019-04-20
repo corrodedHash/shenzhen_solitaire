@@ -54,30 +54,31 @@ class SolitaireSolver:
         self.stack = ActionStack()
         self.stack.push(self.search_board)
 
-    def solve(self) -> List[board_actions.Action]:
-        max_goal = 0
-        action = None
+    def solve(self) -> Iterator[List[board_actions.Action]]:
         while self.stack:
+
             assert (self.search_board.state_identifier ==
                     self.stack.state_stack[-1])
             action = self.stack.get()
+
             if not action:
                 self.stack.pop()
                 self.stack.action_stack[-1].undo(self.search_board)
                 assert (self.search_board.state_identifier
                         in self.state_set)
                 continue
+
             action.apply(self.search_board)
+
             if self.search_board.solved():
-                return self.stack.action_stack
+                yield self.stack.action_stack
+
             if self.search_board.state_identifier in self.state_set:
                 action.undo(self.search_board)
                 assert self.search_board.state_identifier in self.state_set
                 continue
+
             self.state_set.add(self.search_board.state_identifier)
             self.stack.push(self.search_board)
-            if sum(self.search_board.goal.values()) > max_goal:
-                max_goal = sum(self.search_board.goal.values())
-                print(self.search_board.goal)
 
         return self.stack.action_stack

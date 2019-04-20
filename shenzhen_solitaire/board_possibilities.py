@@ -1,5 +1,5 @@
 """Contains function to iterate different kinds of possible actions"""
-from typing import Iterator, List
+from typing import Iterator, List, Tuple
 from . import board
 from . import board_actions
 
@@ -168,29 +168,33 @@ def possible_field_move_actions(
     """Enumerate all possible move actions
     from one field stack to another field stack"""
     first_empty_field_id = -1
-    my_id = search_board.state_identifier
-    for index, stack in enumerate(_get_cardstacks(search_board)):
-        if not stack:
-            continue
-        # TODO: sort all substacks by length
-        for substack in (stack[i:] for i in range(len(stack))):
-            for other_index, other_stack in enumerate(search_board.field):
-                if index == other_index:
+    cardstacks = [(index, stack)
+                  for index, stack in enumerate(_get_cardstacks(search_board))]
+    cardstacks = [x for x in cardstacks if x[1]]
+    cardstacks = sorted(cardstacks, key=lambda x: len(x[1]))
+    substacks: List[Tuple[int, List[board.Card]]] = []
+
+    for index, stack in cardstacks:
+        substacks.extend((index, substack)
+                         for substack in (stack[i:]
+                                          for i in range(len(stack))))
+
+    for index, substack in substacks:
+        for other_index, other_stack in enumerate(search_board.field):
+            if index == other_index:
+                continue
+            if other_stack:
+                if not _can_stack(other_stack[-1], substack[0]):
                     continue
-                if other_stack:
-                    if not _can_stack(other_stack[-1], substack[0]):
-                        continue
-                elif first_empty_field_id == -1:
-                    first_empty_field_id = other_index
-                elif other_index != first_empty_field_id:
-                    continue
-                elif len(substack) == len(search_board.field[index]):
-                    continue
-                assert search_board.state_identifier == my_id
-                yield board_actions.MoveAction(
-                    cards=substack, source_id=index, destination_id=other_index
-                )
-                assert search_board.state_identifier == my_id
+            elif len(substack) == len(search_board.field[index]):
+                continue
+            elif first_empty_field_id == -1:
+                first_empty_field_id = other_index
+            elif other_index != first_empty_field_id:
+                continue
+            yield board_actions.MoveAction(
+                cards=substack, source_id=index, destination_id=other_index
+            )
 
 
 def possible_actions(

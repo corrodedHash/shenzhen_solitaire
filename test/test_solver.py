@@ -5,9 +5,9 @@ from .boards import my_board
 
 def main() -> None:
     A = solver.SolitaireSolver(my_board)
-    B = A.solve()
-    print(*B, sep='\n')
-    print(len(B))
+    for _, B in zip(range(1), A.solve()):
+        print(*B, sep='\n')
+        print(len(B))
 
 if __name__ == "__main__":
     main()
