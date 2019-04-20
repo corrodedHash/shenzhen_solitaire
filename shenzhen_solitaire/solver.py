@@ -1,8 +1,9 @@
 """Contains solver for solitaire"""
-from typing import List, Tuple, Iterator, Set, Optional
+from typing import List, Iterator, Optional
 from .board import Board
 from . import board_actions
 from .board_possibilities import possible_actions
+from .board_actions import MoveAction
 
 
 class ActionStack:
@@ -41,49 +42,51 @@ class ActionStack:
         return len(self.index_stack)
 
 
-class SolitaireSolver:
-    """Solver for Shenzhen Solitaire"""
+def solve(board: Board) -> Iterator[List[board_actions.Action]]:
+    """Solve a solitaire puzzle"""
+    state_set = {board.state_identifier}
+    stack = ActionStack()
+    stack.push(board)
 
-    search_board: Board
-    stack: ActionStack
-    state_set: Set[int]
+    while stack:
+        if len(stack) == -1:
+            stack.pop()
+            stack.action_stack[-1].undo(board)
+            assert (board.state_identifier
+                    in state_set)
 
-    def __init__(self, board: Board) -> None:
-        self.search_board = board
-        self.state_set = {board.state_identifier}
-        self.stack = ActionStack()
-        self.stack.push(self.search_board)
+        assert (board.state_identifier ==
+                stack.state_stack[-1])
+        action = stack.get()
 
-    def solve(self) -> Iterator[List[board_actions.Action]]:
-        while self.stack:
-            if len(self.stack) == -1:
-                self.stack.pop()
-                self.stack.action_stack[-1].undo(self.search_board)
-                assert (self.search_board.state_identifier
-                        in self.state_set)
+        if not action:
+            stack.pop()
+            stack.action_stack[-1].undo(board)
+            assert (board.state_identifier
+                    in state_set)
+            continue
 
-            assert (self.search_board.state_identifier ==
-                    self.stack.state_stack[-1])
-            action = self.stack.get()
-
-            if not action:
-                self.stack.pop()
-                self.stack.action_stack[-1].undo(self.search_board)
-                assert (self.search_board.state_identifier
-                        in self.state_set)
+        if isinstance(action, MoveAction):
+            drop = False
+            for prev_action in stack.action_stack[-2:-21:-1]:
+                if isinstance(prev_action, MoveAction):
+                    if prev_action.cards == action.cards:
+                        print("Dropping")
+                        print(action)
+                        print(prev_action)
+                        drop = True
+            if drop:
                 continue
 
-            action.apply(self.search_board)
+        action.apply(board)
 
-            if self.search_board.solved():
-                yield self.stack.action_stack
+        if board.solved():
+            yield stack.action_stack
 
-            if self.search_board.state_identifier in self.state_set:
-                action.undo(self.search_board)
-                assert self.search_board.state_identifier in self.state_set
-                continue
+        if board.state_identifier in state_set:
+            action.undo(board)
+            assert board.state_identifier in state_set
+            continue
 
-            self.state_set.add(self.search_board.state_identifier)
-            self.stack.push(self.search_board)
-
-        return self.stack.action_stack
+        state_set.add(board.state_identifier)
+        stack.push(board)

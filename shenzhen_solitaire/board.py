@@ -110,7 +110,7 @@ class Board:
             result <<= 5
             result |= field_card.identifier()
 
-        return result 
+        return result
 
     def check_correct(self) -> bool:
         """Returns true, if the board is in a valid state"""
