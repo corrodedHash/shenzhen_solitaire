@@ -56,6 +56,11 @@ class SolitaireSolver:
 
     def solve(self) -> Iterator[List[board_actions.Action]]:
         while self.stack:
+            if len(self.stack) == -1:
+                self.stack.pop()
+                self.stack.action_stack[-1].undo(self.search_board)
+                assert (self.search_board.state_identifier
+                        in self.state_set)
 
             assert (self.search_board.state_identifier ==
                     self.stack.state_stack[-1])

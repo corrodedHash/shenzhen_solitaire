@@ -16,15 +16,15 @@ class Action:
         pass
 
     def apply(self, action_board: board.Board) -> None:
-        #print(f"Applying {str(self)}")
         assert self._before_state == 0
         assert self._after_state == 0
-        self._before_state = action_board.state_identifier
+        if __debug__:
+            self._before_state = action_board.state_identifier
         self._apply(action_board)
-        self._after_state = action_board.state_identifier
+        if __debug__:
+            self._after_state = action_board.state_identifier
 
     def undo(self, action_board: board.Board) -> None:
-        #print(f"Undoing {str(self)}")
         assert action_board.state_identifier == self._after_state
         self._undo(action_board)
         assert action_board.state_identifier == self._before_state
