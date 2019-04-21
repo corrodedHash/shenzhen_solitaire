@@ -8,7 +8,7 @@ def main() -> None:
     A = solver.solve(my_board)
     for _, B in zip(range(1), A):
         print(*B, sep='\n')
-        print(len(B))
+        print(f"Solution: {len(B)}")
 
 
 if __name__ == "__main__":

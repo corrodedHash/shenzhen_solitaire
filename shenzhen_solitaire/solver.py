@@ -3,7 +3,11 @@ from typing import List, Iterator, Optional
 from .board import Board
 from . import board_actions
 from .board_possibilities import possible_actions
-from .board_actions import MoveAction
+from .board_actions import (
+    MoveAction,
+    GoalAction,
+    HuaKillAction,
+    DragonKillAction)
 
 
 class ActionStack:
@@ -48,7 +52,13 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
     stack = ActionStack()
     stack.push(board)
 
+    count = 0
     while stack:
+        count += 1
+        if count > 5000:
+            count = 0
+            print(f"{len(stack)} {sum(board.goal.values())}")
+
         if len(stack) == -1:
             stack.pop()
             stack.action_stack[-1].undo(board)
@@ -68,10 +78,11 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
 
         if isinstance(action, MoveAction):
             drop = False
-            for prev_action in stack.action_stack[-2:-21:-1]:
+            for prev_action in stack.action_stack[-2::-1]:
                 if isinstance(prev_action, MoveAction):
                     if prev_action.cards == action.cards:
                         drop = True
+                        break
             if drop:
                 continue
 
@@ -79,6 +90,14 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
 
         if board.solved():
             yield stack.action_stack
+            stack.action_stack[-1].undo(board)
+            while isinstance(
+                    stack.action_stack[-1], (GoalAction,
+                                             HuaKillAction,
+                                             DragonKillAction)):
+                stack.pop()
+                stack.action_stack[-1].undo(board)
+            continue
 
         if board.state_identifier in state_set:
             action.undo(board)
