@@ -20,7 +20,7 @@ def adjust_squares(
         image: numpy.ndarray,
         count_x: int,
         count_y: int,
-        preset: Optional[Adjustment]) -> Adjustment:
+        preset: Optional[Adjustment] = None) -> Adjustment:
     result = preset
     if not result:
         result = Adjustment(0, 0, 0, 0, 0, 0)
@@ -82,7 +82,7 @@ def adjust_squares(
 
 
 def adjust_field(image) -> Adjustment:
-    return adjust_squares(image, 8, 5, Adjustment(50, 200, 16, 14, 120, 25))
+    return adjust_squares(image, 8, 5, Adjustment(42, 226, 15, 15, 119, 24))
 
 def adjust_bunker(image) -> Adjustment:
     return adjust_squares(image, 3, 1)
