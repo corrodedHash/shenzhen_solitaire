@@ -71,9 +71,6 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
             for prev_action in stack.action_stack[-2:-21:-1]:
                 if isinstance(prev_action, MoveAction):
                     if prev_action.cards == action.cards:
-                        print("Dropping")
-                        print(action)
-                        print(prev_action)
                         drop = True
             if drop:
                 continue

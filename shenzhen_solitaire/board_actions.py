@@ -15,8 +15,6 @@ class Action:
         pass
 
     def apply(self, action_board: board.Board) -> None:
-        assert self._before_state == 0
-        assert self._after_state == 0
         if __debug__:
             self._before_state = action_board.state_identifier
         self._apply(action_board)

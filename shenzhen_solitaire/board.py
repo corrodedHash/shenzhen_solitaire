@@ -133,7 +133,7 @@ class Board:
                 self.bunker, itertools.chain.from_iterable(
                     stack for stack in self.field if stack), ):
             if isinstance(card, tuple):
-                special_cards[card[0]] += 4  # pylint: disable=E1136
+                special_cards[card[0]] += 4
             elif isinstance(card, SpecialCard):
                 special_cards[card] += 1
             elif isinstance(card, NumberCard):
@@ -141,8 +141,8 @@ class Board:
                     return False
                 number_cards[card.suit].add(card.number)
 
-        for _, numbers in number_cards.items():
-            if set(range(1, 10)) != numbers:
+        for suit, numbers in number_cards.items():
+            if set(range(self.goal[suit] + 1, 10)) != numbers:
                 return False
 
         for cardtype, count in special_cards.items():
