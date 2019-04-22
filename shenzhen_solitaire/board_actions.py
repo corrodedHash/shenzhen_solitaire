@@ -5,6 +5,7 @@ from . import board
 
 
 class Action:
+    """Base class for a card move action on a solitaire board"""
     _before_state: int = 0
     _after_state: int = 0
 
@@ -15,6 +16,7 @@ class Action:
         pass
 
     def apply(self, action_board: board.Board) -> None:
+        """Apply action to board"""
         if __debug__:
             self._before_state = action_board.state_identifier
         self._apply(action_board)
@@ -22,6 +24,7 @@ class Action:
             self._after_state = action_board.state_identifier
 
     def undo(self, action_board: board.Board) -> None:
+        """Undo action to board"""
         assert action_board.state_identifier == self._after_state
         self._undo(action_board)
         assert action_board.state_identifier == self._before_state

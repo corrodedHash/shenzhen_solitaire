@@ -11,6 +11,7 @@ from .board_actions import (
 
 
 class ActionStack:
+    """Stack of chosen actions on the board"""
     iterator_stack: List[Iterator[board_actions.Action]]
     action_stack: List[Optional[board_actions.Action]]
     index_stack: List[int]
@@ -23,12 +24,14 @@ class ActionStack:
         self.state_stack = []
 
     def push(self, board: Board) -> None:
+        """Append another board state to stack"""
         self.iterator_stack.append(possible_actions(board))
         self.action_stack.append(None)
         self.index_stack.append(0)
         self.state_stack.append(board.state_identifier)
 
     def get(self) -> Optional[board_actions.Action]:
+        """Get next iteration of top action iterator"""
         try:
             self.action_stack[-1] = next(self.iterator_stack[-1])
         except StopIteration:
@@ -37,6 +40,7 @@ class ActionStack:
         return self.action_stack[-1]
 
     def pop(self) -> None:
+        """Pop one action from stack"""
         self.action_stack.pop()
         self.iterator_stack.pop()
         self.index_stack.pop()
