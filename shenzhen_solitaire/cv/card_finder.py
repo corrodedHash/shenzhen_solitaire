@@ -102,8 +102,8 @@ def find_square(search_square: np.ndarray,
             best_square = square
             best_count = count
             best_coord = coord
-    assert best_square
-    assert best_coord
+    assert isinstance(best_square, np.ndarray)
+    assert isinstance(best_coord, tuple)
     cv2.imshow("Window", best_square -
                search_square[best_coord[0]:best_coord[0] +
                              best_square.shape[0], best_coord[1]:best_coord[1] +

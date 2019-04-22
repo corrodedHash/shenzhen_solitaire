@@ -1,10 +1,11 @@
+import itertools
+from typing import Tuple, List, Dict
+import numpy  # type: ignore
+import cv2  # type: ignore
+
 from .context import shenzhen_solitaire
 from shenzhen_solitaire.cv import adjustment
 from shenzhen_solitaire.cv import card_finder
-from typing import Tuple, List, Dict
-import cv2
-import numpy
-import itertools
 
 
 def pixelcount(image: numpy.ndarray) -> List[Tuple[Tuple[int, int, int], int]]:
@@ -17,6 +18,7 @@ def pixelcount(image: numpy.ndarray) -> List[Tuple[Tuple[int, int, int], int]]:
             p[x] = 1
     B = sorted(p.items(), key=lambda x: x[1])
     return B
+
 
 def simplify(image: numpy.ndarray) -> None:
     cv2.imshow("Window", image)
@@ -43,10 +45,11 @@ def main() -> None:
     adj.h += 5
 
     image_squares = card_finder.get_field_squares(image2, adj)
-    for i in range(10,20):
+    for i in range(10, 20):
         image_squares[i], _ = card_finder.simplify(image_squares[i])
         print("Finding...")
-        found_image, certainty = card_finder.find_square(image_squares[i], squares)
+        found_image, certainty = card_finder.find_square(
+            image_squares[i], squares)
 
 
 if __name__ == "__main__":
