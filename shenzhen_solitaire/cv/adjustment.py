@@ -1,11 +1,14 @@
+"""Contains functions to find significant pieces of a solitaire screenshot"""
+
 from typing import Optional, Tuple
 from dataclasses import dataclass
-import cv2
-import numpy
+import numpy # type: ignore
+import cv2 # type: ignore
 
 
 @dataclass
 class Adjustment:
+    """Configuration for a grid"""
     x: int
     y: int
     w: int
@@ -14,12 +17,13 @@ class Adjustment:
     dy: int
 
 
-def get_square(adjustment: Adjustment, ix: int = 0,
-               iy: int = 0) -> Tuple[int, int, int, int]:
-    return (adjustment.x + adjustment.dx * ix,
-            adjustment.y + adjustment.dy * iy,
-            adjustment.x + adjustment.w + adjustment.dx * ix,
-            adjustment.y + adjustment.h + adjustment.dy * iy)
+def get_square(adjustment: Adjustment, index_x: int = 0,
+               index_y: int = 0) -> Tuple[int, int, int, int]:
+    """Get one square from index and adjustment"""
+    return (adjustment.x + adjustment.dx * index_x,
+            adjustment.y + adjustment.dy * index_y,
+            adjustment.x + adjustment.w + adjustment.dx * index_x,
+            adjustment.y + adjustment.h + adjustment.dy * index_y)
 
 
 def _adjust_squares(
@@ -30,15 +34,15 @@ def _adjust_squares(
     if not adjustment:
         adjustment = Adjustment(0, 0, 0, 0, 0, 0)
     while True:
-        B = image.copy()
-        for ix in range(count_x):
-            for iy in range(count_y):
-                square = get_square(adjustment, ix, iy)
-                cv2.rectangle(B,
+        working_image = image.copy()
+        for index_x in range(count_x):
+            for index_y in range(count_y):
+                square = get_square(adjustment, index_x, index_y)
+                cv2.rectangle(working_image,
                               (square[0], square[1]),
                               (square[2], square[3]),
                               (0, 0, 0))
-        cv2.imshow('Window', B)
+        cv2.imshow('Window', working_image)
         k = cv2.waitKey(0)
         print(k)
         if k == 27:
@@ -80,17 +84,21 @@ def _adjust_squares(
     return adjustment
 
 
-def adjust_field(image) -> Adjustment:
+def adjust_field(image: numpy.ndarray) -> Adjustment:
+    """Open configuration grid for the field"""
     return _adjust_squares(image, 8, 5, Adjustment(42, 226, 15, 15, 119, 24))
 
 
-def adjust_bunker(image) -> Adjustment:
+def adjust_bunker(image: numpy.ndarray) -> Adjustment:
+    """Open configuration grid for the bunker"""
     return _adjust_squares(image, 3, 1)
 
 
-def adjust_hua(image) -> Adjustment:
+def adjust_hua(image: numpy.ndarray) -> Adjustment:
+    """Open configuration grid for the flower card"""
     return _adjust_squares(image, 1, 1)
 
 
-def adjust_goal(image) -> Adjustment:
+def adjust_goal(image: numpy.ndarray) -> Adjustment:
+    """Open configuration grid for the goal"""
     return _adjust_squares(image, 3, 1)

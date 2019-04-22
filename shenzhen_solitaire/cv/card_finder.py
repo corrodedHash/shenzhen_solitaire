@@ -1,8 +1,10 @@
+"""Functions to detect card value"""
+
 from typing import List, Tuple, Optional, Dict
 import enum
 import itertools
-import cv2
-import numpy as np
+import numpy as np  # type: ignore
+import cv2  # type: ignore
 from .adjustment import Adjustment, get_square
 
 
@@ -18,13 +20,13 @@ def _extract_squares(image: np.ndarray,
 def get_field_squares(image: np.ndarray,
                       adjustment: Adjustment) -> List[np.ndarray]:
     squares = []
-    for ix in range(8):
-        for iy in range(5):
-            squares.append(get_square(adjustment, ix, iy))
+    for index_x, index_y in itertools.product(range(8), range(5)):
+        squares.append(get_square(adjustment, index_x, index_y))
     return _extract_squares(image, squares)
 
 
 class Cardcolor(enum.Enum):
+    """Relevant colors for different types of cards"""
     Bai = (65, 65, 65)
     Black = (0, 0, 0)
     Red = (22, 48, 178)
@@ -83,15 +85,16 @@ def _find_single_square(search_square: np.ndarray,
                 count,
                 (x - search_square.shape[0],
                  y - search_square.shape[1]))
+    assert best_result
     return best_result
 
 
 def find_square(search_square: np.ndarray,
                 squares: List[np.ndarray]) -> Tuple[np.ndarray, int]:
     best_set = False
-    best_square = None
+    best_square: Optional[np.ndarray] = None
     best_count = 0
-    best_coord = None
+    best_coord: Optional[Tuple[int, int]] = None
     for square in squares:
         count, coord = _find_single_square(square, search_square)
         if not best_set or count < best_count:
@@ -99,11 +102,12 @@ def find_square(search_square: np.ndarray,
             best_square = square
             best_count = count
             best_coord = coord
-    print(best_square[1])
+    assert best_square
+    assert best_coord
     cv2.imshow("Window", best_square -
                search_square[best_coord[0]:best_coord[0] +
-                           best_square.shape[0], best_coord[1]:best_coord[1] +
-                           best_square.shape[1]])
+                             best_square.shape[0], best_coord[1]:best_coord[1] +
+                             best_square.shape[1]])
     while cv2.waitKey(0) != 27:
         pass
     cv2.destroyWindow("Window")
