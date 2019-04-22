@@ -1,22 +1,22 @@
 from typing import List, Tuple, Optional, Dict
-import numpy
-from .adjustment import Adjustment, get_square
-from .. import board
 import enum
 import itertools
+import cv2
+import numpy as np
+from .adjustment import Adjustment, get_square
 
 
-def _extract_squares(image: numpy.ndarray,
+def _extract_squares(image: np.ndarray,
                      squares: List[Tuple[int,
                                          int,
                                          int,
-                                         int]]) -> List[numpy.ndarray]:
+                                         int]]) -> List[np.ndarray]:
     return [image[square[1]:square[3], square[0]:square[2]].copy()
             for square in squares]
 
 
-def get_field_squares(image: numpy.ndarray,
-                      adjustment: Adjustment) -> List[numpy.ndarray]:
+def get_field_squares(image: np.ndarray,
+                      adjustment: Adjustment) -> List[np.ndarray]:
     squares = []
     for ix in range(8):
         for iy in range(5):
@@ -32,16 +32,79 @@ class Cardcolor(enum.Enum):
     Background = (178, 194, 193)
 
 
-def simplify(image: numpy.ndarray) -> Dict[Cardcolor, int]:
+GREYSCALE_COLOR = {
+    Cardcolor.Bai: 50,
+    Cardcolor.Black: 100,
+    Cardcolor.Red: 150,
+    Cardcolor.Green: 200,
+    Cardcolor.Background: 250}
+
+
+def simplify(image: np.ndarray) -> Tuple[np.ndarray, Dict[Cardcolor, int]]:
+    result_image: np.ndarray = np.zeros(
+        (image.shape[0], image.shape[1]), np.uint8)
     result_dict: Dict[Cardcolor, int] = {c: 0 for c in Cardcolor}
-    for pixel in itertools.chain.from_iterable(image):
+    for pixel_x, pixel_y in itertools.product(
+            range(result_image.shape[0]),
+            range(result_image.shape[1])):
+        pixel = image[pixel_x, pixel_y]
         best_color: Optional[Tuple[Cardcolor, int]] = None
         for color in Cardcolor:
             mse = sum((x - y) ** 2 for x, y in zip(color.value, pixel))
             if not best_color or best_color[1] > mse:
                 best_color = (color, mse)
         assert best_color
-        for i in range(3):
-            pixel[i] = best_color[0].value[i]
+        result_image[pixel_x, pixel_y] = GREYSCALE_COLOR[best_color[0]]
         result_dict[best_color[0]] += 1
-    return result_dict
+    return (result_image, result_dict)
+
+
+def get_simplified_squares(image: np.ndarray,
+                           adjustment: Adjustment) -> List[np.ndarray]:
+    squares = get_field_squares(image, adjustment)
+    for index, square in enumerate(squares):
+        squares[index], _ = simplify(square)
+    return squares
+
+
+def _find_single_square(search_square: np.ndarray,
+                        template_square: np.ndarray) -> Tuple[int, Tuple[int, int]]:
+    assert search_square.shape[0] <= template_square.shape[0]
+    assert search_square.shape[1] <= template_square.shape[1]
+    best_result: Optional[Tuple[int, Tuple[int, int]]] = None
+    for x, y in itertools.product(
+            range(template_square.shape[0], search_square.shape[0] - 1, -1),
+            range(template_square.shape[1], search_square.shape[1] - 1, -1)):
+        p = template_square[x - search_square.shape[0]:x,
+                            y - search_square.shape[1]:y] - search_square
+        count = cv2.countNonZero(p)
+        if not best_result or count < best_result[0]:
+            best_result = (
+                count,
+                (x - search_square.shape[0],
+                 y - search_square.shape[1]))
+    return best_result
+
+
+def find_square(search_square: np.ndarray,
+                squares: List[np.ndarray]) -> Tuple[np.ndarray, int]:
+    best_set = False
+    best_square = None
+    best_count = 0
+    best_coord = None
+    for square in squares:
+        count, coord = _find_single_square(square, search_square)
+        if not best_set or count < best_count:
+            best_set = True
+            best_square = square
+            best_count = count
+            best_coord = coord
+    print(best_square[1])
+    cv2.imshow("Window", best_square -
+               search_square[best_coord[0]:best_coord[0] +
+                           best_square.shape[0], best_coord[1]:best_coord[1] +
+                           best_square.shape[1]])
+    while cv2.waitKey(0) != 27:
+        pass
+    cv2.destroyWindow("Window")
+    return (best_square, best_count)
