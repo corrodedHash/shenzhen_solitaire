@@ -11,6 +11,7 @@ import cv2  # type: ignore
 from .context import shenzhen_solitaire
 from shenzhen_solitaire.cv import adjustment
 from shenzhen_solitaire.cv import card_finder
+from shenzhen_solitaire import board
 
 
 def pixelcount(image: np.ndarray) -> List[Tuple[Tuple[int, int, int], int]]:
@@ -37,21 +38,25 @@ def simplify(image: np.ndarray) -> None:
 def calibrate(image: np.ndarray) -> None:
     adj = adjustment.adjust_field(image)
     squares = card_finder.get_field_squares(image, adj)
-    catalogue = card_finder.catalague_cards(squares)
-    simplified_catalogue = []
-    for square, card in catalogue:
-        simplified_catalogue.append((card_finder.simplify(square), card))
+    catalogue = card_finder.catalague_cards(squares[:2])
 
     zip_stream = io.BytesIO()
     with zipfile.ZipFile(zip_stream, "w") as zip_file:
         zip_file.writestr('adjustment.json', json.dumps(dataclasses.asdict(adj)))
+        counter = 0
+        for square, card in catalogue:
+            counter += 1
+            file_stream = io.BytesIO()
+            np.save(file_stream, square, allow_pickle=False)
+            file_name = ""
+            if isinstance(card, board.SpecialCard):
+                file_name = f's{card.value}-{card.name}-{counter}.npy'
+            elif isinstance(card, board.NumberCard):
+                file_name = f'n{card.suit.value}{card.number}-{card.suit.name}-{card.number}-{counter}.npy'
+            else:
+                raise AssertionError()
+            zip_file.writestr(f"templates/{file_name}", file_stream.getvalue())
 
-        file_stream = io.BytesIO()
-        np.save(file_stream, squares[0], allow_pickle=False)
-        print(file_stream.getvalue())
-        zip_file.writestr('0.dat', file_stream.getvalue())
-    print()
-    print(zip_stream.getvalue())
     with open('myzip.zip', 'wb') as fd:
         fd.write(zip_stream.getvalue())
 
@@ -62,7 +67,7 @@ def main() -> None:
     nparr = np.frombuffer(img_str, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    #print(squares[0])
+    calibrate(image)
 
 
 
@@ -77,4 +82,3 @@ def main2() -> None:
 
 if __name__ == "__main__":
     main()
-    main2()
