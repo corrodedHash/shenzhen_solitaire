@@ -6,6 +6,7 @@ import itertools
 import numpy as np  # type: ignore
 import cv2  # type: ignore
 from .adjustment import Adjustment, get_square
+from ..board import Card, NumberCard, SpecialCard
 
 
 def _extract_squares(image: np.ndarray,
@@ -71,20 +72,20 @@ def get_simplified_squares(image: np.ndarray,
 
 def _find_single_square(search_square: np.ndarray,
                         template_square: np.ndarray) -> Tuple[int, Tuple[int, int]]:
-    assert search_square.shape[0] <= template_square.shape[0]
-    assert search_square.shape[1] <= template_square.shape[1]
+    assert search_square.shape[0] >= template_square.shape[0]
+    assert search_square.shape[1] >= template_square.shape[1]
     best_result: Optional[Tuple[int, Tuple[int, int]]] = None
     for x, y in itertools.product(
-            range(template_square.shape[0], search_square.shape[0] - 1, -1),
-            range(template_square.shape[1], search_square.shape[1] - 1, -1)):
-        p = template_square[x - search_square.shape[0]:x,
-                            y - search_square.shape[1]:y] - search_square
+            range(search_square.shape[0], template_square.shape[0] - 1, -1),
+            range(search_square.shape[1], template_square.shape[1] - 1, -1)):
+        p = search_square[x - template_square.shape[0]:x,
+                          y - template_square.shape[1]:y] - template_square
         count = cv2.countNonZero(p)
         if not best_result or count < best_result[0]:
             best_result = (
                 count,
-                (x - search_square.shape[0],
-                 y - search_square.shape[1]))
+                (x - template_square.shape[0],
+                 y - template_square.shape[1]))
     assert best_result
     return best_result
 
@@ -96,19 +97,58 @@ def find_square(search_square: np.ndarray,
     best_count = 0
     best_coord: Optional[Tuple[int, int]] = None
     for square in squares:
-        count, coord = _find_single_square(square, search_square)
+        count, coord = _find_single_square(search_square, square)
         if not best_set or count < best_count:
             best_set = True
             best_square = square
             best_count = count
             best_coord = coord
     assert isinstance(best_square, np.ndarray)
-    assert isinstance(best_coord, tuple)
-    cv2.imshow("Window", best_square -
-               search_square[best_coord[0]:best_coord[0] +
-                             best_square.shape[0], best_coord[1]:best_coord[1] +
-                             best_square.shape[1]])
-    while cv2.waitKey(0) != 27:
-        pass
-    cv2.destroyWindow("Window")
     return (best_square, best_count)
+
+
+def catalague_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
+    cv2.namedWindow("Catalogue", cv2.WINDOW_NORMAL)
+    cv2.waitKey(1)
+    result: List[Tuple[np.ndarray, Card]] = []
+    print(
+        "Card ID is [B]ai, [Z]hong, [F]a, [H]ua, [R]ed, [G]reen, [B]arkblack")
+    print("Numbercard e.g. R3")
+    special_card_map = {
+        'b': SpecialCard.Bai,
+        'z': SpecialCard.Zhong,
+        'f': SpecialCard.Fa,
+        'h': SpecialCard.Hua}
+    suit_map = {
+        'r': NumberCard.Suit.Red,
+        'g': NumberCard.Suit.Green,
+        'b': NumberCard.Suit.Black}
+    for square in squares:
+        while True:
+            cv2.imshow("Catalogue", cv2.resize(square, (500, 500)))
+            cv2.waitKey(1)
+            card_id = input("Card ID:").lower()
+            card_type: Optional[Card] = None
+            if len(card_id) == 1:
+                if card_id not in special_card_map:
+                    print("hi")
+                    continue
+                card_type = special_card_map[card_id]
+            elif len(card_id) == 2:
+                if not card_id[0] in suit_map:
+                    continue
+                if not card_id[1].isdigit():
+                    continue
+                if card_id[1] == '0':
+                    continue
+                card_type = NumberCard(number=int(
+                    card_id[1]), suit=suit_map[card_id[0]])
+            else:
+                continue
+            assert card_type is not None
+            result.append((square, card_type))
+            break
+
+    cv2.destroyWindow("Catalogue")
+    assert result is not None
+    return result
