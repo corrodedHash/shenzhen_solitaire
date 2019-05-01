@@ -107,7 +107,7 @@ def find_square(search_square: np.ndarray,
     return (best_square, best_count)
 
 
-def catalague_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
+def catalogue_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
     cv2.namedWindow("Catalogue", cv2.WINDOW_NORMAL)
     cv2.waitKey(1)
     result: List[Tuple[np.ndarray, Card]] = []
