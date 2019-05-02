@@ -86,6 +86,6 @@ class Configuration:
     def generate(image: np.ndarray) -> 'Configuration':
         """Generate a configuration with user input"""
         adj = adjustment.adjust_field(image)
-        squares = card_finder.get_field_squares(image, adj)
-        catalogue = card_finder.catalogue_cards(squares[:2])
+        squares = card_finder.get_field_squares(image, adj, 5, 8)
+        catalogue = card_finder.catalogue_cards(squares)
         return Configuration(adj=adj, catalogue=catalogue, meta={})

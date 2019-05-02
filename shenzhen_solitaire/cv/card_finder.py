@@ -19,9 +19,11 @@ def _extract_squares(image: np.ndarray,
 
 
 def get_field_squares(image: np.ndarray,
-                      adjustment: Adjustment) -> List[np.ndarray]:
+                      adjustment: Adjustment,
+                      count_x: int,
+                      count_y: int) -> List[np.ndarray]:
     squares = []
-    for index_x, index_y in itertools.product(range(8), range(5)):
+    for index_x, index_y in itertools.product(range(count_y), range(count_x)):
         squares.append(get_square(adjustment, index_x, index_y))
     return _extract_squares(image, squares)
 
@@ -62,14 +64,6 @@ def simplify(image: np.ndarray) -> Tuple[np.ndarray, Dict[Cardcolor, int]]:
     return (result_image, result_dict)
 
 
-def get_simplified_squares(image: np.ndarray,
-                           adjustment: Adjustment) -> List[np.ndarray]:
-    squares = get_field_squares(image, adjustment)
-    for index, square in enumerate(squares):
-        squares[index], _ = simplify(square)
-    return squares
-
-
 def _find_single_square(search_square: np.ndarray,
                         template_square: np.ndarray) -> Tuple[int, Tuple[int, int]]:
     assert search_square.shape[0] >= template_square.shape[0]
@@ -107,12 +101,13 @@ def find_square(search_square: np.ndarray,
     return (best_square, best_count)
 
 
-def catalogue_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
+def catalogue_cards(squares: List[np.ndarray]
+                    ) -> List[Tuple[np.ndarray, Card]]:
     cv2.namedWindow("Catalogue", cv2.WINDOW_NORMAL)
     cv2.waitKey(1)
     result: List[Tuple[np.ndarray, Card]] = []
     print(
-        "Card ID is [B]ai, [Z]hong, [F]a, [H]ua, [R]ed, [G]reen, [B]arkblack")
+        "Card ID is [B]ai, [Z]hong, [F]a, [H]ua, [R]ed, [G]reen, [B]lack")
     print("Numbercard e.g. R3")
     special_card_map = {
         'b': SpecialCard.Bai,
@@ -131,7 +126,6 @@ def catalogue_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
             card_type: Optional[Card] = None
             if len(card_id) == 1:
                 if card_id not in special_card_map:
-                    print("hi")
                     continue
                 card_type = special_card_map[card_id]
             elif len(card_id) == 2:
@@ -146,6 +140,7 @@ def catalogue_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
             else:
                 continue
             assert card_type is not None
+            print(card_type)
             result.append((square, card_type))
             break
 
