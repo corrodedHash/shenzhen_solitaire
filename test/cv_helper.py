@@ -21,7 +21,8 @@ def main() -> None:
     nparr = np.frombuffer(img_str, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    Configuration.generate(image)
+    a = Configuration.generate(image)
+    a.save('test_config.zip')
 
 
 if __name__ == "__main__":

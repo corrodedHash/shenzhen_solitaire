@@ -22,7 +22,7 @@ class Configuration:
                                        board.Card]],
                  meta: Dict[str,
                             str]) -> None:
-        self.adjustment = adj
+        self.field_adjustment = adj
         self.catalogue = catalogue
         self.meta = meta
 
@@ -33,12 +33,12 @@ class Configuration:
             zip_file.writestr(
                 self.ADJUSTMENT_FILE_NAME, json.dumps(
                     dataclasses.asdict(
-                        self.adjustment)))
+                        self.field_adjustment)))
             counter = 0
             for square, card in self.catalogue:
                 counter += 1
                 file_stream = io.BytesIO()
-                np.save(file_stream, square, allow_pickle=False)
+                np.save(file_stream, card_finder.simplify(square)[0], allow_pickle=False)
                 file_name = ""
                 if isinstance(card, board.SpecialCard):
                     file_name = f's{card.value}-{card.name}-{counter}.npy'
