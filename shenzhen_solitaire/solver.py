@@ -56,6 +56,29 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
     stack = ActionStack()
     stack.push(board)
 
+    def _limit_stack_size(stack_size: int) -> None:
+        if len(stack) == -1:
+            stack.pop()
+            assert stack.action_stack[-1] is not None
+            stack.action_stack[-1].undo(board)
+            assert (board.state_identifier
+                    in state_set)
+
+    def _backtrack_action() -> None:
+        stack.pop()
+        assert stack.action_stack[-1] is not None
+        stack.action_stack[-1].undo(board)
+        assert (board.state_identifier
+                in state_set)
+
+    def _skip_loop_move(action: board_actions.Action) -> bool:
+        if isinstance(action, MoveAction):
+            for prev_action in stack.action_stack[-2::-1]:
+                if isinstance(prev_action, MoveAction):
+                    if prev_action.cards == action.cards:
+                        return True
+        return False
+
     count = 0
     while stack:
         count += 1
@@ -63,32 +86,18 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
             count = 0
             print(f"{len(stack)} {sum(board.goal.values())}")
 
-        if len(stack) == -1:
-            stack.pop()
-            stack.action_stack[-1].undo(board)
-            assert (board.state_identifier
-                    in state_set)
+        # _limit_stack_size(80)
 
         assert (board.state_identifier ==
                 stack.state_stack[-1])
         action = stack.get()
 
         if not action:
-            stack.pop()
-            stack.action_stack[-1].undo(board)
-            assert (board.state_identifier
-                    in state_set)
+            _backtrack_action()
             continue
 
-        if isinstance(action, MoveAction):
-            drop = False
-            for prev_action in stack.action_stack[-2::-1]:
-                if isinstance(prev_action, MoveAction):
-                    if prev_action.cards == action.cards:
-                        drop = True
-                        break
-            if drop:
-                continue
+        if _skip_loop_move(action):
+            continue
 
         action.apply(board)
 
