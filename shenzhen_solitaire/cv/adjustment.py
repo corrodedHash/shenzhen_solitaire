@@ -2,6 +2,7 @@
 
 from typing import Optional, Tuple
 from dataclasses import dataclass
+import itertools
 import numpy
 import cv2
 
@@ -35,13 +36,12 @@ def _adjust_squares(
         adjustment = Adjustment(0, 0, 0, 0, 0, 0)
     while True:
         working_image = image.copy()
-        for index_x in range(count_x):
-            for index_y in range(count_y):
-                square = get_square(adjustment, index_x, index_y)
-                cv2.rectangle(working_image,
-                              (square[0], square[1]),
-                              (square[2], square[3]),
-                              (0, 0, 0))
+        for index_x, index_y in itertools.product(range(count_x), range(count_y)):
+            square = get_square(adjustment, index_x, index_y)
+            cv2.rectangle(working_image,
+                          (square[0], square[1]),
+                          (square[2], square[3]),
+                          (0, 0, 0))
         cv2.imshow('Window', working_image)
         k = cv2.waitKey(0)
         print(k)
