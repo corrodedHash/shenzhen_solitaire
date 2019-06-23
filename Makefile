@@ -12,4 +12,4 @@ typing:
 	mypy --strict ${PROJECTNAME} test
 
 linting:
-	pylint ${PROJECTNAME} test
+	pylint --extension-pkg-whitelist=cv2 ${PROJECTNAME} test

@@ -1,11 +1,13 @@
+"""Contains parse_board function"""
+
 import numpy as np
 from .configuration import Configuration
 from ..board import Board
 from . import card_finder
-import copy
 
 
 def parse_board(image: np.ndarray, conf: Configuration) -> Board:
+    """Parse a screenshot of the game, using a given configuration"""
     squares = card_finder.get_field_squares(
         image, conf.field_adjustment, count_x=13, count_y=8)
     squares = [card_finder.simplify(square)[0] for square in squares]

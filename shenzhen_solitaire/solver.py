@@ -57,7 +57,7 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
     stack.push(board)
 
     def _limit_stack_size(stack_size: int) -> None:
-        if len(stack) == -1:
+        if len(stack) == stack_size:
             stack.pop()
             assert stack.action_stack[-1] is not None
             stack.action_stack[-1].undo(board)

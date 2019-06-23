@@ -22,6 +22,7 @@ def get_field_squares(image: np.ndarray,
                       adjustment: Adjustment,
                       count_x: int,
                       count_y: int) -> List[np.ndarray]:
+    """Return all squares in the field, according to the adjustment"""
     squares = []
     for index_x, index_y in itertools.product(range(count_y), range(count_x)):
         squares.append(get_square(adjustment, index_x, index_y))
@@ -46,6 +47,7 @@ GREYSCALE_COLOR = {
 
 
 def simplify(image: np.ndarray) -> Tuple[np.ndarray, Dict[Cardcolor, int]]:
+    """Reduce given image to the colors in Cardcolor"""
     result_image: np.ndarray = np.zeros(
         (image.shape[0], image.shape[1]), np.uint8)
     result_dict: Dict[Cardcolor, int] = {c: 0 for c in Cardcolor}
@@ -69,40 +71,42 @@ def _find_single_square(search_square: np.ndarray,
     assert search_square.shape[0] >= template_square.shape[0]
     assert search_square.shape[1] >= template_square.shape[1]
     best_result: Optional[Tuple[int, Tuple[int, int]]] = None
-    for x, y in itertools.product(
+    for margin_x, margin_y in itertools.product(
             range(search_square.shape[0], template_square.shape[0] - 1, -1),
             range(search_square.shape[1], template_square.shape[1] - 1, -1)):
-        p = search_square[x - template_square.shape[0]:x,
-                          y - template_square.shape[1]:y] - template_square
-        count = cv2.countNonZero(p)
+        search_region = search_square[margin_x -
+                                      template_square.shape[0]:margin_x, margin_y -
+                                      template_square.shape[1]:margin_y]
+        count = cv2.countNonZero(search_region - template_square)
         if not best_result or count < best_result[0]:
             best_result = (
                 count,
-                (x - template_square.shape[0],
-                 y - template_square.shape[1]))
+                (margin_x - template_square.shape[0],
+                 margin_y - template_square.shape[1]))
     assert best_result
     return best_result
 
 
 def find_square(search_square: np.ndarray,
                 squares: List[np.ndarray]) -> Tuple[np.ndarray, int]:
+    """Compare all squares in squares with search_square, return best matching one.
+    Requires all squares to be simplified."""
     best_set = False
     best_square: Optional[np.ndarray] = None
     best_count = 0
-    best_coord: Optional[Tuple[int, int]] = None
     for square in squares:
-        count, coord = _find_single_square(search_square, square)
+        count, _ = _find_single_square(search_square, square)
         if not best_set or count < best_count:
             best_set = True
             best_square = square
             best_count = count
-            best_coord = coord
     assert isinstance(best_square, np.ndarray)
     return (best_square, best_count)
 
 
 def catalogue_cards(squares: List[np.ndarray]
                     ) -> List[Tuple[np.ndarray, Card]]:
+    """Run manual cataloging for given squares"""
     cv2.namedWindow("Catalogue", cv2.WINDOW_NORMAL)
     cv2.waitKey(1)
     result: List[Tuple[np.ndarray, Card]] = []

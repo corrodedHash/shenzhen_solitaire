@@ -2,8 +2,8 @@
 
 from typing import Optional, Tuple
 from dataclasses import dataclass
-import numpy  # type: ignore
-import cv2  # type: ignore
+import numpy
+import cv2
 
 
 @dataclass
