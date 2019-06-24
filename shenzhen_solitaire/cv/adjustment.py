@@ -32,53 +32,46 @@ def _adjust_squares(
         count_x: int,
         count_y: int,
         adjustment: Optional[Adjustment] = None) -> Adjustment:
+
     if not adjustment:
         adjustment = Adjustment(0, 0, 0, 0, 0, 0)
+
+    def _adjustment_step(keycode: int) -> None:
+        assert adjustment is not None
+        x_keys = {81: -1, 83: +1, 104: -10, 115: +10}
+        y_keys = {82: -1, 84: +1, 116: -10, 110: +10}
+        w_keys = {97: -1, 117: +1}
+        h_keys = {111: -1, 101: +1}
+        dx_keys = {59: -1, 112: +1}
+        dy_keys = {44: -1, 46: +1}
+        if keycode in x_keys:
+            adjustment.x += x_keys[keycode]
+        elif keycode in y_keys:
+            adjustment.y += y_keys[keycode]
+        elif keycode in w_keys:
+            adjustment.w += w_keys[keycode]
+        elif keycode in h_keys:
+            adjustment.h += h_keys[keycode]
+        elif keycode in dx_keys:
+            adjustment.dx += dx_keys[keycode]
+        elif keycode in dy_keys:
+            adjustment.dy += dy_keys[keycode]
+
     while True:
         working_image = image.copy()
-        for index_x, index_y in itertools.product(range(count_x), range(count_y)):
+        for index_x, index_y in itertools.product(
+                range(count_x), range(count_y)):
             square = get_square(adjustment, index_x, index_y)
             cv2.rectangle(working_image,
                           (square[0], square[1]),
                           (square[2], square[3]),
                           (0, 0, 0))
         cv2.imshow('Window', working_image)
-        k = cv2.waitKey(0)
-        print(k)
-        if k == 27:
+        keycode = cv2.waitKey(0)
+        print(keycode)
+        if keycode == 27:
             break
-        elif k == 81:
-            adjustment.x -= 1
-        elif k == 83:
-            adjustment.x += 1
-        elif k == 82:
-            adjustment.y -= 1
-        elif k == 84:
-            adjustment.y += 1
-        elif k == 104:
-            adjustment.x -= 10
-        elif k == 115:
-            adjustment.x += 10
-        elif k == 116:
-            adjustment.y -= 10
-        elif k == 110:
-            adjustment.y += 10
-        elif k == 97:
-            adjustment.w -= 1
-        elif k == 111:
-            adjustment.h -= 1
-        elif k == 101:
-            adjustment.h += 1
-        elif k == 117:
-            adjustment.w += 1
-        elif k == 59:
-            adjustment.dx -= 1
-        elif k == 44:
-            adjustment.dy -= 1
-        elif k == 46:
-            adjustment.dy += 1
-        elif k == 112:
-            adjustment.dx += 1
+        _adjustment_step(keycode)
 
     cv2.destroyWindow('Window')
     return adjustment

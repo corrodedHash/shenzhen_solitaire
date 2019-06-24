@@ -58,7 +58,7 @@ def simplify(image: np.ndarray) -> Tuple[np.ndarray, Dict[Cardcolor, int]]:
         best_color: Optional[Tuple[Cardcolor, int]] = None
         for color in Cardcolor:
             mse = sum((x - y) ** 2 for x, y in zip(color.value, pixel))
-            if not best_color or best_color[1] > mse:
+            if not best_color or best_color[1] > mse: #pylint: disable=E1136
                 best_color = (color, mse)
         assert best_color
         result_image[pixel_x, pixel_y] = GREYSCALE_COLOR[best_color[0]]
@@ -78,7 +78,7 @@ def _find_single_square(search_square: np.ndarray,
                                       template_square.shape[0]:margin_x, margin_y -
                                       template_square.shape[1]:margin_y]
         count = cv2.countNonZero(search_region - template_square)
-        if not best_result or count < best_result[0]:
+        if not best_result or count < best_result[0]: #pylint: disable=E1136
             best_result = (
                 count,
                 (margin_x - template_square.shape[0],
