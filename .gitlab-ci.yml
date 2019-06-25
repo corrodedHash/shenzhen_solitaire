@@ -1,0 +1,8 @@
+testing:
+    script: "make test"
+    
+linting:
+    script: "make linting"
+    
+typing:
+    script: "make typing"
