@@ -1,0 +1,4 @@
+- Build the docker in the dockerfile.
+- Install gitlab-runner, `systemctl start gitlab-runner`.
+- `sudo gitlab-runner register`, values required are in the gitlab repository under 'Settings/CI/Runners'
+- Set the `pull_policy = "never"`

@@ -1,0 +1,8 @@
+testing:
+    script: "python3 -m unittest discover"
+    
+linting:
+    script: "python3 -m pylint --extension-pkg-whitelist=cv2 shenzhen_solitaire test"
+    
+typing:
+    script: "python3 -m mypy --strict shenzhen_solitaire test"
