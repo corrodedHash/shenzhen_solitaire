@@ -1,8 +1,7 @@
 """Contains tests for chain module"""
 import unittest
 
-from .context import shenzhen_solitaire
-from shenzhen_solitaire.board import NumberCard, SpecialCard, Board, Position
+from shenzhen_solitaire.board import NumberCard, Position
 from shenzhen_solitaire.board_actions import MoveAction, BunkerizeAction, GoalAction, HuaKillAction
 from shenzhen_solitaire import board_possibilities
 from .boards import my_board

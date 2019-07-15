@@ -1,4 +1,4 @@
-from .context import shenzhen_solitaire
+"""Contains an example board to run tests on"""
 from shenzhen_solitaire.board import NumberCard, SpecialCard, Board
 
 my_board: Board = Board()
