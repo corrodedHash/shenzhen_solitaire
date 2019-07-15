@@ -1,8 +1,8 @@
 """Contains an example board to run tests on"""
 from shenzhen_solitaire.board import NumberCard, SpecialCard, Board
 
-my_board: Board = Board()
-my_board.field[0] = [
+TEST_BOARD = Board()
+TEST_BOARD.field[0] = [
     SpecialCard.Fa,
     NumberCard(NumberCard.Suit.Black, 8),
     SpecialCard.Bai,
@@ -10,7 +10,7 @@ my_board.field[0] = [
     SpecialCard.Zhong,
 ]
 
-my_board.field[1] = [
+TEST_BOARD.field[1] = [
     NumberCard(NumberCard.Suit.Red, 9),
     SpecialCard.Zhong,
     SpecialCard.Zhong,
@@ -18,7 +18,7 @@ my_board.field[1] = [
     NumberCard(NumberCard.Suit.Black, 3),
 ]
 
-my_board.field[2] = [
+TEST_BOARD.field[2] = [
     SpecialCard.Hua,
     NumberCard(NumberCard.Suit.Red, 1),
     NumberCard(NumberCard.Suit.Red, 4),
@@ -26,7 +26,7 @@ my_board.field[2] = [
     NumberCard(NumberCard.Suit.Red, 6),
 ]
 
-my_board.field[3] = [
+TEST_BOARD.field[3] = [
     SpecialCard.Bai,
     SpecialCard.Zhong,
     NumberCard(NumberCard.Suit.Red, 3),
@@ -34,7 +34,7 @@ my_board.field[3] = [
     NumberCard(NumberCard.Suit.Green, 6),
 ]
 
-my_board.field[4] = [
+TEST_BOARD.field[4] = [
     NumberCard(NumberCard.Suit.Green, 7),
     NumberCard(NumberCard.Suit.Green, 4),
     NumberCard(NumberCard.Suit.Red, 5),
@@ -42,7 +42,7 @@ my_board.field[4] = [
     NumberCard(NumberCard.Suit.Black, 6),
 ]
 
-my_board.field[5] = [
+TEST_BOARD.field[5] = [
     NumberCard(NumberCard.Suit.Green, 3),
     SpecialCard.Bai,
     SpecialCard.Fa,
@@ -50,7 +50,7 @@ my_board.field[5] = [
     NumberCard(NumberCard.Suit.Black, 5),
 ]
 
-my_board.field[6] = [
+TEST_BOARD.field[6] = [
     SpecialCard.Fa,
     NumberCard(NumberCard.Suit.Green, 9),
     NumberCard(NumberCard.Suit.Green, 2),
@@ -58,7 +58,7 @@ my_board.field[6] = [
     NumberCard(NumberCard.Suit.Red, 8),
 ]
 
-my_board.field[7] = [
+TEST_BOARD.field[7] = [
     SpecialCard.Bai,
     NumberCard(NumberCard.Suit.Red, 2),
     SpecialCard.Fa,

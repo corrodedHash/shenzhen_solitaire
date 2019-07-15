@@ -4,7 +4,7 @@ import unittest
 from shenzhen_solitaire.board import NumberCard, Position
 from shenzhen_solitaire.board_actions import MoveAction, BunkerizeAction, GoalAction, HuaKillAction
 from shenzhen_solitaire import board_possibilities
-from .boards import my_board
+from .boards import TEST_BOARD
 
 
 class ChainTestClass(unittest.TestCase):
@@ -13,7 +13,7 @@ class ChainTestClass(unittest.TestCase):
     def test_sequence(self) -> None:
         """Tests a given sequence. Might break if I change the iterators"""
 
-        self.assertTrue(my_board.check_correct())
+        self.assertTrue(TEST_BOARD.check_correct())
         sequence = [
             MoveAction(
                 cards=[
@@ -66,6 +66,6 @@ class ChainTestClass(unittest.TestCase):
                 source_position=Position.Field)
         ]
         for action in sequence:
-            step = list(board_possibilities.possible_actions(my_board))
+            step = list(board_possibilities.possible_actions(TEST_BOARD))
             self.assertIn(action, step)
-            action.apply(my_board)
+            action.apply(TEST_BOARD)

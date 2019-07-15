@@ -4,7 +4,7 @@ import copy
 
 from shenzhen_solitaire import solver
 
-from .boards import my_board
+from .boards import TEST_BOARD
 
 
 class SolverTest(unittest.TestCase):
@@ -12,9 +12,9 @@ class SolverTest(unittest.TestCase):
 
     def test_solver(self) -> None:
         """Tests solver"""
-        board_copy = copy.deepcopy(my_board)
-        board_id = my_board.state_identifier
-        board_solution_iterator = solver.solve(my_board)
+        board_copy = copy.deepcopy(TEST_BOARD)
+        board_id = TEST_BOARD.state_identifier
+        board_solution_iterator = solver.solve(TEST_BOARD)
         for _, current_solution in zip(range(1), board_solution_iterator):
             self.assertEqual(board_id, board_copy.state_identifier)
             for action in current_solution:
