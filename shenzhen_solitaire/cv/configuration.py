@@ -38,12 +38,16 @@ class Configuration:
             for square, card in self.catalogue:
                 counter += 1
                 file_stream = io.BytesIO()
-                np.save(file_stream, card_finder.simplify(square)[0], allow_pickle=False)
+                np.save(
+                    file_stream,
+                    card_finder.simplify(square)[0],
+                    allow_pickle=False)
                 file_name = ""
                 if isinstance(card, board.SpecialCard):
                     file_name = f's{card.value}-{card.name}-{counter}.npy'
                 elif isinstance(card, board.NumberCard):
-                    file_name = f'n{card.suit.value}{card.number}-{card.suit.name}-{counter}.npy'
+                    file_name = f'n{card.suit.value}{card.number}'\
+                                f'-{card.suit.name}-{counter}.npy'
                 else:
                     raise AssertionError()
                 zip_file.writestr(
@@ -72,7 +76,8 @@ class Configuration:
         catalogue: List[Tuple[np.ndarray, board.Card]] = []
         with zipfile.ZipFile(filename, 'r') as zip_file:
             adj = adjustment.Adjustment(
-                **json.loads(zip_file.read(Configuration.ADJUSTMENT_FILE_NAME)))
+                **json.loads(
+                    zip_file.read(Configuration.ADJUSTMENT_FILE_NAME)))
             for template_filename in (
                     x for x in zip_file.namelist() if
                     x.startswith(Configuration.TEMPLATES_DIRECTORY + '/')):

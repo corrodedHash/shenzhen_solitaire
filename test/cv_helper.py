@@ -11,7 +11,7 @@ from shenzhen_solitaire.cv.configuration import Configuration
 
 def generate() -> None:
     """Generate a configuration"""
-    with open("Solitaire.png", 'rb') as png_file:
+    with open("pictures/20190809172213_1.jpg", 'rb') as png_file:
         img_str = png_file.read()
     nparr = np.frombuffer(img_str, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -19,13 +19,14 @@ def generate() -> None:
     generated_config = Configuration.generate(image)
     generated_config.save('test_config.zip')
 
+
 def parse() -> board.Board:
     """Parse a configuration"""
-    with open("Solitaire2.png", 'rb') as png_file:
+    with open("pictures/20190809172213_1.jpg", 'rb') as png_file:
         img_str = png_file.read()
     nparr = np.frombuffer(img_str, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    image = cv2.resize(image, (1000, 629))
+    # image = cv2.resize(image, (1000, 629))
 
     loaded_config = Configuration.load('test_config.zip')
     loaded_config.field_adjustment = adjustment.adjust_field(image)
@@ -33,5 +34,5 @@ def parse() -> board.Board:
 
 
 if __name__ == "__main__":
-    #generate()
+    # generate()
     parse()
