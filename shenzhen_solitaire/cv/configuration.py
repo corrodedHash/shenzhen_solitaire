@@ -34,6 +34,7 @@ class Configuration:
                 self.ADJUSTMENT_FILE_NAME, json.dumps(
                     dataclasses.asdict(
                         self.field_adjustment)))
+
             counter = 0
             for square, card in self.catalogue:
                 counter += 1

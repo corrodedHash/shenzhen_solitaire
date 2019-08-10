@@ -29,7 +29,7 @@ def parse() -> board.Board:
     # image = cv2.resize(image, (1000, 629))
 
     loaded_config = Configuration.load('test_config.zip')
-    loaded_config.field_adjustment = adjustment.adjust_field(image)
+    # loaded_config.field_adjustment = adjustment.adjust_field(image)
     return board_parser.parse_board(image, loaded_config)
 
 
