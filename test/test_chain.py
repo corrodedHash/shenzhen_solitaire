@@ -2,12 +2,12 @@
 import unittest
 
 from shenzhen_solitaire.board import NumberCard, Position
-from shenzhen_solitaire.board_actions import MoveAction, BunkerizeAction, GoalAction, HuaKillAction
-from shenzhen_solitaire import board_possibilities
+from shenzhen_solitaire.solver.board_actions import MoveAction, BunkerizeAction, GoalAction, HuaKillAction
+from shenzhen_solitaire.solver import board_possibilities
 from .boards import TEST_BOARD
 
 
-class ChainTestClass(unittest.TestCase):
+class ChainTest(unittest.TestCase):
     """Tests the chain class"""
 
     def test_sequence(self) -> None:

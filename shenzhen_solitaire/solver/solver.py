@@ -1,6 +1,6 @@
 """Contains solver for solitaire"""
 from typing import List, Iterator, Optional
-from .board import Board
+from ..board import Board
 from . import board_actions
 from .board_possibilities import possible_actions
 from .board_actions import (

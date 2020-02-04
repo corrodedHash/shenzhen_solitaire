@@ -1,6 +1,6 @@
 """Contains function to iterate different kinds of possible actions"""
 from typing import Iterator, List, Tuple
-from . import board
+from .. import board
 from . import board_actions
 
 
