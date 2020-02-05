@@ -1,6 +1,8 @@
 """Contains an example board to run tests on"""
 from shenzhen_solitaire.board import NumberCard, SpecialCard, Board
 
+Suit = NumberCard.Suit
+
 TEST_BOARD = Board()
 TEST_BOARD.field[0] = [
     SpecialCard.Fa,
@@ -64,4 +66,63 @@ TEST_BOARD.field[7] = [
     SpecialCard.Fa,
     NumberCard(NumberCard.Suit.Black, 1),
     NumberCard(NumberCard.Suit.Green, 8),
+]
+
+B20190809172206_1 = Board()
+B20190809172206_1.field[0] = [
+    NumberCard(Suit.Green, 6),
+    NumberCard(Suit.Green, 5),
+    NumberCard(Suit.Red, 4),
+    NumberCard(Suit.Green, 4),
+    SpecialCard.Fa,
+]
+
+B20190809172206_1.field[1] = [
+    NumberCard(Suit.Black, 8),
+    NumberCard(Suit.Black, 6),
+    SpecialCard.Zhong,
+    NumberCard(Suit.Black, 9),
+    NumberCard(Suit.Green, 7),
+]
+
+B20190809172206_1.field[2] = [
+    SpecialCard.Zhong,
+    NumberCard(Suit.Black, 4),
+    NumberCard(Suit.Green, 2),
+    SpecialCard.Bai,
+    SpecialCard.Zhong,
+]
+B20190809172206_1.field[3] = [
+    NumberCard(Suit.Green, 1),
+    NumberCard(Suit.Green, 3),
+    NumberCard(Suit.Black, 5),
+    SpecialCard.Fa,
+    SpecialCard.Fa,
+]
+B20190809172206_1.field[4] = [
+    NumberCard(Suit.Red, 8),
+    SpecialCard.Zhong,
+    NumberCard(Suit.Red, 7),
+]
+B20190809172206_1.field[5] = [
+    SpecialCard.Fa,
+    SpecialCard.Bai,
+    NumberCard(Suit.Red, 2),
+    SpecialCard.Hua,
+    SpecialCard.Bai,
+]
+B20190809172206_1.field[6] = [
+    NumberCard(Suit.Black, 2),
+    NumberCard(Suit.Green, 8),
+    NumberCard(Suit.Black, 7),
+    SpecialCard.Bai,
+    NumberCard(Suit.Red, 9),
+]
+
+B20190809172206_1.field[7] = [
+    NumberCard(Suit.Red, 3),
+    NumberCard(Suit.Black, 3),
+    NumberCard(Suit.Green, 9),
+    NumberCard(Suit.Red, 5),
+    NumberCard(Suit.Red, 6),
 ]
