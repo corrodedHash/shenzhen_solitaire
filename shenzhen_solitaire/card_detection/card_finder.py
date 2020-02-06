@@ -26,61 +26,6 @@ def get_field_squares(
         squares.append(get_square(adjustment, index_x, index_y))
     return _extract_squares(image, squares)
 
-
-class Cardcolor(enum.Enum):
-    """Relevant colors for different types of cards"""
-
-    Bai = (65, 65, 65)
-    Black = (0, 0, 0)
-    Red = (22, 48, 178)
-    Green = (76, 111, 19)
-    Background = (178, 194, 193)
-
-def _find_single_square(
-    search_square: np.ndarray, template_square: np.ndarray
-) -> Tuple[int, Tuple[int, int]]:
-    assert search_square.shape[0] >= template_square.shape[0]
-    assert search_square.shape[1] >= template_square.shape[1]
-    best_result: Optional[Tuple[int, Tuple[int, int]]] = None
-    for margin_x, margin_y in itertools.product(
-        range(search_square.shape[0], template_square.shape[0] - 1, -1),
-        range(search_square.shape[1], template_square.shape[1] - 1, -1),
-    ):
-        search_region = search_square[
-            margin_x - template_square.shape[0] : margin_x,
-            margin_y - template_square.shape[1] : margin_y,
-        ]
-        count = cv2.countNonZero(search_region - template_square)
-        if not best_result or count < best_result[0]:  # pylint: disable=E1136
-            best_result = (
-                count,
-                (
-                    margin_x - template_square.shape[0],
-                    margin_y - template_square.shape[1],
-                ),
-            )
-    assert best_result
-    return best_result
-
-
-def find_square(
-    search_square: np.ndarray, squares: List[np.ndarray]
-) -> Tuple[np.ndarray, int]:
-    """Compare all squares in squares with search_square, return best matching one.
-    Requires all squares to be simplified."""
-    best_set = False
-    best_square: Optional[np.ndarray] = None
-    best_count = 0
-    for square in squares:
-        count, _ = _find_single_square(search_square, square)
-        if not best_set or count < best_count:
-            best_set = True
-            best_square = square
-            best_count = count
-    assert isinstance(best_square, np.ndarray)
-    return (best_square, best_count)
-
-
 def catalogue_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
     """Run manual cataloging for given squares"""
     cv2.namedWindow("Catalogue", cv2.WINDOW_NORMAL)
@@ -88,6 +33,7 @@ def catalogue_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
     result: List[Tuple[np.ndarray, Card]] = []
     print("Card ID is [B]ai, [Z]hong, [F]a, [H]ua, [R]ed, [G]reen, [B]lack")
     print("Numbercard e.g. R3")
+    abort_row = 'a'
     special_card_map = {
         "b": SpecialCard.Bai,
         "z": SpecialCard.Zhong,
@@ -127,5 +73,5 @@ def catalogue_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
             break
 
     cv2.destroyWindow("Catalogue")
-    assert result is not None
+    assert len(result) == len(squares)
     return result

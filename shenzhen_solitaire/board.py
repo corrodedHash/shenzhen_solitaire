@@ -51,10 +51,12 @@ class Position(enum.Enum):
 class Board:
     """Solitaire board"""
 
+    # Starting max row is 5, if the last one is a `1`, we can put a `2` - `9` on top of it, resulting in 13 cards
+    MAX_ROW_SIZE = 13
+
     def __init__(self) -> None:
         self.field: List[List[Card]] = [[]] * 8
-        self.bunker: List[Union[Tuple[SpecialCard, int],
-                                Optional[Card]]] = [None] * 3
+        self.bunker: List[Union[Tuple[SpecialCard, int], Optional[Card]]] = [None] * 3
         self.goal: Dict[NumberCard.Suit, int] = {
             NumberCard.Suit.Red: 0,
             NumberCard.Suit.Green: 0,
@@ -130,8 +132,9 @@ class Board:
             special_cards[SpecialCard.Hua] += 1
 
         for card in itertools.chain(
-                self.bunker, itertools.chain.from_iterable(
-                    stack for stack in self.field if stack), ):
+            self.bunker,
+            itertools.chain.from_iterable(stack for stack in self.field if stack),
+        ):
             if isinstance(card, tuple):
                 special_cards[card[0]] += 4
             elif isinstance(card, SpecialCard):

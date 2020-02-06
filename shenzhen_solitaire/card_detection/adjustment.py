@@ -27,7 +27,7 @@ def get_square(adjustment: Adjustment, index_x: int = 0,
             adjustment.y + adjustment.h + adjustment.dy * index_y)
 
 
-def _adjust_squares(
+def adjust_squares(
         image: numpy.ndarray,
         count_x: int,
         count_y: int,
@@ -79,19 +79,19 @@ def _adjust_squares(
 
 def adjust_field(image: numpy.ndarray) -> Adjustment:
     """Open configuration grid for the field"""
-    return _adjust_squares(image, 8, 5, Adjustment(42, 226, 15, 15, 119, 24))
+    return adjust_squares(image, 8, 13, Adjustment(42, 226, 15, 15, 119, 24))
 
 
 def adjust_bunker(image: numpy.ndarray) -> Adjustment:
     """Open configuration grid for the bunker"""
-    return _adjust_squares(image, 3, 1)
+    return adjust_squares(image, 3, 1)
 
 
 def adjust_hua(image: numpy.ndarray) -> Adjustment:
     """Open configuration grid for the flower card"""
-    return _adjust_squares(image, 1, 1)
+    return adjust_squares(image, 1, 1)
 
 
 def adjust_goal(image: numpy.ndarray) -> Adjustment:
     """Open configuration grid for the goal"""
-    return _adjust_squares(image, 3, 1)
+    return adjust_squares(image, 3, 1)
