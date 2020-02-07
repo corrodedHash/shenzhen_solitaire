@@ -53,9 +53,10 @@ class Board:
 
     # Starting max row is 5, if the last one is a `1`, we can put a `2` - `9` on top of it, resulting in 13 cards
     MAX_ROW_SIZE = 13
+    MAX_COLUMN_SIZE = 8
 
     def __init__(self) -> None:
-        self.field: List[List[Card]] = [[]] * 8
+        self.field: List[List[Card]] = [[]] * Board.MAX_COLUMN_SIZE
         self.bunker: List[Union[Tuple[SpecialCard, int], Optional[Card]]] = [None] * 3
         self.goal: Dict[NumberCard.Suit, int] = {
             NumberCard.Suit.Red: 0,

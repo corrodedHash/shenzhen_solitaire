@@ -10,31 +10,36 @@ import cv2
 @dataclass
 class Adjustment:
     """Configuration for a grid"""
-    x: int
-    y: int
-    w: int
-    h: int
-    dx: int
-    dy: int
+
+    x: int = 0
+    y: int = 0
+    w: int = 0
+    h: int = 0
+    dx: int = 0
+    dy: int = 0
 
 
-def get_square(adjustment: Adjustment, index_x: int = 0,
-               index_y: int = 0) -> Tuple[int, int, int, int]:
+def get_square(
+    adjustment: Adjustment, index_x: int = 0, index_y: int = 0
+) -> Tuple[int, int, int, int]:
     """Get one square from index and adjustment"""
-    return (adjustment.x + adjustment.dx * index_x,
-            adjustment.y + adjustment.dy * index_y,
-            adjustment.x + adjustment.w + adjustment.dx * index_x,
-            adjustment.y + adjustment.h + adjustment.dy * index_y)
+    return (
+        adjustment.x + adjustment.dx * index_x,
+        adjustment.y + adjustment.dy * index_y,
+        adjustment.x + adjustment.w + adjustment.dx * index_x,
+        adjustment.y + adjustment.h + adjustment.dy * index_y,
+    )
 
 
 def adjust_squares(
-        image: numpy.ndarray,
-        count_x: int,
-        count_y: int,
-        adjustment: Optional[Adjustment] = None) -> Adjustment:
+    image: numpy.ndarray,
+    count_x: int,
+    count_y: int,
+    adjustment: Optional[Adjustment] = None,
+) -> Adjustment:
 
     if not adjustment:
-        adjustment = Adjustment(0, 0, 0, 0, 0, 0)
+        adjustment = Adjustment(w=10, h=10)
 
     def _adjustment_step(keycode: int) -> None:
         assert adjustment is not None
@@ -59,21 +64,19 @@ def adjust_squares(
 
     while True:
         working_image = image.copy()
-        for index_x, index_y in itertools.product(
-                range(count_x), range(count_y)):
+        for index_x, index_y in itertools.product(range(count_x), range(count_y)):
             square = get_square(adjustment, index_x, index_y)
-            cv2.rectangle(working_image,
-                          (square[0], square[1]),
-                          (square[2], square[3]),
-                          (0, 0, 0))
-        cv2.imshow('Window', working_image)
+            cv2.rectangle(
+                working_image, (square[0], square[1]), (square[2], square[3]), (0, 0, 0)
+            )
+        cv2.imshow("Window", working_image)
         keycode = cv2.waitKey(0)
         print(keycode)
         if keycode == 27:
             break
         _adjustment_step(keycode)
 
-    cv2.destroyWindow('Window')
+    cv2.destroyWindow("Window")
     return adjustment
 
 

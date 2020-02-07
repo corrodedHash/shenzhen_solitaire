@@ -2,7 +2,7 @@
 
 import numpy as np
 from .configuration import Configuration
-from ..board import Board, NumberCard, SpecialCard
+from ..board import Board, NumberCard, SpecialCard, Card
 from . import card_finder
 import cv2
 from typing import Iterable, Any, List, Tuple, Union
@@ -37,12 +37,13 @@ def get_square_iterator(
     return zip(grouped_squares, grouped_border_squares)
 
 
-def match_template(template: np.ndarray, search_image: np.ndarray) -> int:
+def match_template(template: np.ndarray, search_image: np.ndarray) -> float:
     """Return matchiness for the template on the search image"""
+
     res = cv2.matchTemplate(search_image, template, cv2.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-    assert isinstance(max_val, int)
-    return max_val
+    assert isinstance(max_val, (int, float))
+    return float(max_val)
 
 
 def parse_square(
@@ -70,13 +71,13 @@ def parse_square(
     return (best_name, row_finished)
 
 
-def parse_board(image: np.ndarray, conf: Configuration) -> Board:
+def parse_field(image: np.ndarray, conf: Configuration) -> List[List[Card]]:
     """Parse a screenshot of the game, using a given configuration"""
     square_iterator = get_square_iterator(
-        image, conf, row_count=Board.MAX_ROW_SIZE, column_count=8
+        image, conf, row_count=Board.MAX_ROW_SIZE, column_count=Board.MAX_COLUMN_SIZE
     )
-    result = Board()
-    for group_index, (square_group, border_group) in enumerate(square_iterator):
+    result = []
+    for square_group, border_group in square_iterator:
         group_field = []
         for index, (square, border_square) in enumerate(
             zip(square_group, border_group)
@@ -86,6 +87,12 @@ def parse_board(image: np.ndarray, conf: Configuration) -> Board:
             if row_finished:
                 break
 
-        result.field[group_index] = group_field
+        result.append(group_field)
 
+    return result
+
+
+def parse_board(image: np.ndarray, conf: Configuration) -> Board:
+    result = Board()
+    result.field = parse_field(image, conf)
     return result

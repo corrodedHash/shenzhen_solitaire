@@ -14,8 +14,12 @@ from . import card_finder
 from .. import board
 
 ADJUSTMENT_FILE_NAME = "adjustment.json"
+
 FIELD_ADJUSTMENT_KEY = "field"
 BORDER_ADJUSTMENT_KEY = "border"
+GOAL_ADJUSTMENT_KEY = "goal"
+BUNKER_ADJUSTMENT_KEY = "bunker"
+HUA_ADJUSTMENT_KEY = "hua"
 
 TEMPLATES_DIRECTORY = "templates"
 CARD_BORDER_DIRECTORY = "borders"
@@ -28,11 +32,26 @@ PICTURE_EXTENSION = "png"
 class Configuration:
     """Configuration for solitaire cv"""
 
-    field_adjustment: adjustment.Adjustment
-    border_adjustment: adjustment.Adjustment
-    catalogue: List[Tuple[np.ndarray, Union[board.SpecialCard, board.NumberCard]]]
-    card_border: List[np.ndarray]
-    empty_card: List[np.ndarray]
+    field_adjustment: adjustment.Adjustment = dataclasses.field(
+        default_factory=adjustment.Adjustment
+    )
+    border_adjustment: adjustment.Adjustment = dataclasses.field(
+        default_factory=adjustment.Adjustment
+    )
+    goal_adjustment: adjustment.Adjustment = dataclasses.field(
+        default_factory=adjustment.Adjustment
+    )
+    bunker_adjustment: adjustment.Adjustment = dataclasses.field(
+        default_factory=adjustment.Adjustment
+    )
+    hua_adjustment: adjustment.Adjustment = dataclasses.field(
+        default_factory=adjustment.Adjustment
+    )
+    catalogue: List[
+        Tuple[np.ndarray, Union[board.SpecialCard, board.NumberCard]]
+    ] = dataclasses.field(default_factory=list)
+    card_border: List[np.ndarray] = dataclasses.field(default_factory=list)
+    empty_card: List[np.ndarray] = dataclasses.field(default_factory=list)
     meta: Dict[str, str] = dataclasses.field(default_factory=dict)
 
 
@@ -55,10 +74,9 @@ def _save_catalogue(
         zip_file.write(
             myfile, arcname=f"{TEMPLATES_DIRECTORY}/{file_name}.{PICTURE_EXTENSION}"
         )
-    
-def _save_adjustments(
-    zip_file: zipfile.ZipFile, conf: Configuration
-) -> None:
+
+
+def _save_adjustments(zip_file: zipfile.ZipFile, conf: Configuration) -> None:
     adjustments = {}
     adjustments[FIELD_ADJUSTMENT_KEY] = dataclasses.asdict(conf.field_adjustment)
     adjustments[BORDER_ADJUSTMENT_KEY] = dataclasses.asdict(conf.border_adjustment)
@@ -75,7 +93,7 @@ def save(conf: Configuration, filename: str) -> None:
     with zipfile.ZipFile(zip_stream, "w") as zip_file:
         _save_adjustments(zip_file, conf)
         _save_catalogue(zip_file, conf.catalogue)
-
+    # TODO: Save card_borders and emtpy_card
     with open(filename, "wb") as zip_archive:
         zip_archive.write(zip_stream.getvalue())
 
@@ -98,7 +116,9 @@ def _load_catalogue(zip_file: zipfile.ZipFile,) -> List[Tuple[np.ndarray, board.
 
     mydir = tempfile.mkdtemp()
     for template_filename in (
-        x for x in zip_file.namelist() if x.startswith(TEMPLATES_DIRECTORY + "/")
+        x
+        for x in zip_file.namelist()
+        if x.startswith(TEMPLATES_DIRECTORY + "/") and x != TEMPLATES_DIRECTORY + "/"
     ):
         myfile = zip_file.extract(template_filename, path=mydir)
         catalogue.append((cv2.imread(myfile), _parse_file_name(template_filename),))
@@ -111,7 +131,9 @@ def _load_dir(zip_file: zipfile.ZipFile, dirname: str) -> List[np.ndarray]:
     image_filenames = [
         image_filename
         for image_filename in (
-            x for x in zip_file.namelist() if x.startswith(dirname + "/")
+            x
+            for x in zip_file.namelist()
+            if x.startswith(dirname + "/") and x != dirname + "/"
         )
     ]
     images = [
@@ -127,18 +149,28 @@ def load(filename: str) -> Configuration:
     with zipfile.ZipFile(filename, "r") as zip_file:
         adjustment_dict = json.loads(zip_file.read(ADJUSTMENT_FILE_NAME))
 
-        return Configuration(
+        result = Configuration(
             field_adjustment=adjustment.Adjustment(
-                **adjustment_dict[FIELD_ADJUSTMENT_KEY]
+                **adjustment_dict.get(FIELD_ADJUSTMENT_KEY, {})
             ),
             border_adjustment=adjustment.Adjustment(
-                **adjustment_dict[BORDER_ADJUSTMENT_KEY]
+                **adjustment_dict.get(BORDER_ADJUSTMENT_KEY, {})
+            ),
+            goal_adjustment=adjustment.Adjustment(
+                **adjustment_dict.get(GOAL_ADJUSTMENT_KEY, {})
+            ),
+            bunker_adjustment=adjustment.Adjustment(
+                **adjustment_dict.get(BUNKER_ADJUSTMENT_KEY, {})
+            ),
+            hua_adjustment=adjustment.Adjustment(
+                **adjustment_dict.get(HUA_ADJUSTMENT_KEY, {})
             ),
             catalogue=_load_catalogue(zip_file),
             card_border=_load_dir(zip_file, CARD_BORDER_DIRECTORY),
             empty_card=_load_dir(zip_file, EMPTY_CARD_DIRECTORY),
             meta={},
         )
+        return result
 
 
 def generate(image: np.ndarray) -> Configuration:
