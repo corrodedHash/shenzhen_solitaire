@@ -7,7 +7,7 @@ import dataclasses
 from dataclasses import dataclass
 import tempfile
 import cv2
-
+import enum
 import numpy as np
 from . import adjustment
 from . import card_finder
@@ -20,12 +20,22 @@ BORDER_ADJUSTMENT_KEY = "border"
 GOAL_ADJUSTMENT_KEY = "goal"
 BUNKER_ADJUSTMENT_KEY = "bunker"
 HUA_ADJUSTMENT_KEY = "hua"
+SPECIAL_BUTTON_ADJUSTMENT_KEY = "special_button"
 
 TEMPLATES_DIRECTORY = "templates"
 CARD_BORDER_DIRECTORY = "borders"
 EMPTY_CARD_DIRECTORY = "empty_cards"
+GREEN_CARD_DIRECTORY = "green_cards"
+SPECIAL_BUTTON_DIRECTORY = "special_buttons"
+CARD_BACK_DIRECTORY = "card_backs"
 
 PICTURE_EXTENSION = "png"
+
+
+class ButtonState(enum.Enum):
+    normal = enum.auto()
+    greyed = enum.auto()
+    shiny = enum.auto()
 
 
 @dataclass
@@ -47,11 +57,19 @@ class Configuration:
     hua_adjustment: adjustment.Adjustment = dataclasses.field(
         default_factory=adjustment.Adjustment
     )
+    special_button_adjustment: adjustment.Adjustment = dataclasses.field(
+        default_factory=adjustment.Adjustment
+    )
     catalogue: List[
         Tuple[np.ndarray, Union[board.SpecialCard, board.NumberCard]]
     ] = dataclasses.field(default_factory=list)
     card_border: List[np.ndarray] = dataclasses.field(default_factory=list)
     empty_card: List[np.ndarray] = dataclasses.field(default_factory=list)
+    green_card: List[np.ndarray] = dataclasses.field(default_factory=list)
+    special_buttons: List[
+        Tuple[ButtonState, board.SpecialCard, np.ndarray]
+    ] = dataclasses.field(default_factory=list)
+    card_back: List[np.ndarray] = dataclasses.field(default_factory=list)
     meta: Dict[str, str] = dataclasses.field(default_factory=dict)
 
 
@@ -93,7 +111,7 @@ def save(conf: Configuration, filename: str) -> None:
     with zipfile.ZipFile(zip_stream, "w") as zip_file:
         _save_adjustments(zip_file, conf)
         _save_catalogue(zip_file, conf.catalogue)
-    # TODO: Save card_borders and emtpy_card
+    # TODO: Save card_borders and emtpy_card and green_card and special_buttons and card_back
     with open(filename, "wb") as zip_archive:
         zip_archive.write(zip_stream.getvalue())
 
@@ -110,23 +128,9 @@ def _parse_file_name(card_filename: str) -> board.Card:
     raise AssertionError("Template files need to start with either 's' or 'n'")
 
 
-def _load_catalogue(zip_file: zipfile.ZipFile,) -> List[Tuple[np.ndarray, board.Card]]:
-
-    catalogue: List[Tuple[np.ndarray, board.Card]] = []
-
-    mydir = tempfile.mkdtemp()
-    for template_filename in (
-        x
-        for x in zip_file.namelist()
-        if x.startswith(TEMPLATES_DIRECTORY + "/") and x != TEMPLATES_DIRECTORY + "/"
-    ):
-        myfile = zip_file.extract(template_filename, path=mydir)
-        catalogue.append((cv2.imread(myfile), _parse_file_name(template_filename),))
-        assert catalogue[-1][0] is not None
-    return catalogue
-
-
-def _load_dir(zip_file: zipfile.ZipFile, dirname: str) -> List[np.ndarray]:
+def _load_dir_with_name(
+    zip_file: zipfile.ZipFile, dirname: str
+) -> List[Tuple[str, np.ndarray]]:
     mydir = tempfile.mkdtemp()
     image_filenames = [
         image_filename
@@ -137,10 +141,58 @@ def _load_dir(zip_file: zipfile.ZipFile, dirname: str) -> List[np.ndarray]:
         )
     ]
     images = [
-        cv2.imread(zip_file.extract(image_filename, path=mydir))
+        (
+            image_filename[len(dirname + "/") :],
+            cv2.imread(zip_file.extract(image_filename, path=mydir)),
+        )
         for image_filename in image_filenames
     ]
+    assert all(x[1] is not None for x in images)
     return images
+
+
+def _load_catalogue(zip_file: zipfile.ZipFile,) -> List[Tuple[np.ndarray, board.Card]]:
+
+    catalogue = [
+        (image, _parse_file_name(filename))
+        for filename, image in _load_dir_with_name(zip_file, TEMPLATES_DIRECTORY)
+    ]
+
+    return catalogue
+
+
+def _parse_special_button_filename(
+    filename: str,
+) -> Tuple[ButtonState, board.SpecialCard]:
+    assert len(filename) >= 2
+
+    state_char_map = {
+        "n": ButtonState.normal,
+        "g": ButtonState.greyed,
+        "s": ButtonState.shiny,
+    }
+    special_card_char_map = {
+        "f": board.SpecialCard.Fa,
+        "z": board.SpecialCard.Zhong,
+        "b": board.SpecialCard.Bai,
+    }
+    assert filename[0] in state_char_map
+    assert filename[1] in special_card_char_map
+    return (state_char_map[filename[0]], special_card_char_map[filename[1]])
+
+
+def _load_special_buttions(
+    zip_file: zipfile.ZipFile,
+) -> List[Tuple[ButtonState, board.SpecialCard, np.ndarray]]:
+    result = [
+        (*_parse_special_button_filename(filename), image)
+        for filename, image in _load_dir_with_name(zip_file, SPECIAL_BUTTON_DIRECTORY)
+    ]
+    return result
+
+
+def _load_dir(zip_file: zipfile.ZipFile, dirname: str) -> List[np.ndarray]:
+    return [image for filename, image in _load_dir_with_name(zip_file, dirname)]
 
 
 def load(filename: str) -> Configuration:
@@ -165,9 +217,15 @@ def load(filename: str) -> Configuration:
             hua_adjustment=adjustment.Adjustment(
                 **adjustment_dict.get(HUA_ADJUSTMENT_KEY, {})
             ),
+            special_button_adjustment=adjustment.Adjustment(
+                **adjustment_dict.get(SPECIAL_BUTTON_ADJUSTMENT_KEY, {})
+            ),
             catalogue=_load_catalogue(zip_file),
             card_border=_load_dir(zip_file, CARD_BORDER_DIRECTORY),
             empty_card=_load_dir(zip_file, EMPTY_CARD_DIRECTORY),
+            green_card=_load_dir(zip_file, GREEN_CARD_DIRECTORY),
+            card_back=_load_dir(zip_file, CARD_BACK_DIRECTORY),
+            special_buttons=_load_special_buttions(zip_file),
             meta={},
         )
         return result
