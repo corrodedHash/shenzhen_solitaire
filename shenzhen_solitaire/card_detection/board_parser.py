@@ -1,12 +1,14 @@
 """Contains parse_board function"""
 
-import numpy as np
-from .configuration import Configuration
-from ..board import Board, NumberCard, SpecialCard, Card
-from . import card_finder
-import cv2
-from typing import Iterable, Any, List, Tuple, Union
 import itertools
+from typing import Any, Iterable, List, Optional, Tuple, Union, Dict
+
+import cv2
+import numpy as np
+
+from ..board import Board, Card, NumberCard, SpecialCard
+from . import card_finder
+from .configuration import Configuration
 
 
 def grouper(
@@ -17,7 +19,7 @@ def grouper(
     return itertools.zip_longest(*args, fillvalue=fillvalue)
 
 
-def get_square_iterator(
+def get_field_square_iterator(
     image: np.ndarray, conf: Configuration, row_count: int, column_count: int
 ) -> Iterable[Tuple[np.ndarray, np.ndarray]]:
     """Return iterator for both the square, as well as the matching card border"""
@@ -46,7 +48,7 @@ def match_template(template: np.ndarray, search_image: np.ndarray) -> float:
     return float(max_val)
 
 
-def parse_square(
+def parse_field_square(
     square: np.ndarray, border: np.ndarray, conf: Configuration
 ) -> Tuple[Union[NumberCard, SpecialCard], bool]:
     square_fits = [
@@ -73,7 +75,7 @@ def parse_square(
 
 def parse_field(image: np.ndarray, conf: Configuration) -> List[List[Card]]:
     """Parse a screenshot of the game, using a given configuration"""
-    square_iterator = get_square_iterator(
+    square_iterator = get_field_square_iterator(
         image, conf, row_count=Board.MAX_ROW_SIZE, column_count=Board.MAX_COLUMN_SIZE
     )
     result = []
@@ -82,7 +84,7 @@ def parse_field(image: np.ndarray, conf: Configuration) -> List[List[Card]]:
         for index, (square, border_square) in enumerate(
             zip(square_group, border_group)
         ):
-            value, row_finished = parse_square(square, border_square, conf)
+            value, row_finished = parse_field_square(square, border_square, conf)
             group_field.append(value)
             if row_finished:
                 break
@@ -92,7 +94,25 @@ def parse_field(image: np.ndarray, conf: Configuration) -> List[List[Card]]:
     return result
 
 
+def parse_hua(image: np.ndarray, conf: Configuration) -> bool:
+    """Return true if hua is in the hua spot, false if hua spot is empty"""
+    raise NotImplementedError()
+
+
+def parse_bunker(
+    image: np.ndarray, conf: Configuration
+) -> List[Union[Tuple[SpecialCard, int], Optional[Card]]]:
+    raise NotImplementedError()
+
+
+def parse_goal(image: np.ndarray, conf: Configuration) -> Dict[NumberCard.Suit, int]:
+    raise NotImplementedError()
+
+
 def parse_board(image: np.ndarray, conf: Configuration) -> Board:
     result = Board()
     result.field = parse_field(image, conf)
+    # result.flower_gone = parse_hua(image, conf)
+    # result.bunker = parse_bunker(image, conf)
+    # result.goal = parse_goal(image, conf)
     return result

@@ -117,13 +117,12 @@ def save(conf: Configuration, filename: str) -> None:
 
 
 def _parse_file_name(card_filename: str) -> board.Card:
-    assert card_filename.startswith(TEMPLATES_DIRECTORY + "/")
-    pure_name = card_filename[len(TEMPLATES_DIRECTORY + "/") :]
-    if pure_name[0] == "s":
-        return board.SpecialCard(int(pure_name[1]))
-    if pure_name[0] == "n":
+    if card_filename[0] == "s":
+        return board.SpecialCard(int(card_filename[1]))
+    if card_filename[0] == "n":
         return board.NumberCard(
-            suit=board.NumberCard.Suit(int(pure_name[1])), number=int(pure_name[2]),
+            suit=board.NumberCard.Suit(int(card_filename[1])),
+            number=int(card_filename[2]),
         )
     raise AssertionError("Template files need to start with either 's' or 'n'")
 
