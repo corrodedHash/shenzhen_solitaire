@@ -36,6 +36,9 @@ class NumberCard:
         """Returns unique identifier representing this card"""
         return int(self.number - 1 + 9 ** int(self.suit.value))
 
+    def __repr__(self) -> str:
+        return f"NumberCard({self.suit.name} {self.number})"
+
 
 Card = Union[NumberCard, SpecialCard]
 
@@ -58,16 +61,38 @@ class Board:
     def __init__(self) -> None:
         self.field: List[List[Card]] = [[]] * Board.MAX_COLUMN_SIZE
         self.bunker: List[Union[Tuple[SpecialCard, int], Optional[Card]]] = [None] * 3
-        self.goal: Dict[NumberCard.Suit, int] = {
-            NumberCard.Suit.Red: 0,
-            NumberCard.Suit.Green: 0,
-            NumberCard.Suit.Black: 0,
-        }
+        self.goal: List[Optional[NumberCard]] = [None] * 3
         self.flower_gone: bool = False
+
+    def getGoal(self, suit: NumberCard.Suit) -> int:
+        for card in self.goal:
+            if card is not None and card.suit == suit:
+                return card.number
+        else:
+            return 0
+
+    def getGoalId(self, suit: NumberCard.Suit) -> int:
+        for index, card in enumerate(self.goal):
+            if card is not None and card.suit == suit:
+                return index
+        else:
+            return self.goal.index(None)
+
+    def setGoal(self, suit: NumberCard.Suit, value: int) -> None:
+        assert len(self.goal) == 3
+        assert 0 <= value
+        assert value <= 9
+        if value == 0:
+            self.goal[self.getGoalId(suit)] = None
+        else:
+            self.goal[self.getGoalId(suit)] = NumberCard(suit, number=value)
+
+    def incGoal(self, suit: NumberCard.Suit) -> None:
+        self.setGoal(suit, self.getGoal(suit) + 1)
 
     def solved(self) -> bool:
         """Returns true if the board is solved"""
-        if any(x != 9 for x in self.goal.values()):
+        if any(x.number != 9 for x in self.goal if x is not None):
             return False
         if any(not isinstance(x, tuple) for x in self.bunker):
             return False
@@ -97,9 +122,14 @@ class Board:
         if self.flower_gone:
             result |= 1
 
-        for _, goal_count in self.goal.items():
-            result <<= 4
-            result |= goal_count
+        assert len(self.goal) == 3
+        suit_sequence = list(NumberCard.Suit)
+        for card in self.goal:
+            result <<= 5
+            if card is None:
+                result |= len(suit_sequence) * 10
+            else:
+                result |= suit_sequence.index(card.suit) * 10 + card.number
 
         # Max stack size is 13
         # (4 random cards from the start, plus a stack from 9 to 1)
@@ -146,7 +176,7 @@ class Board:
                 number_cards[card.suit].add(card.number)
 
         for suit, numbers in number_cards.items():
-            if set(range(self.goal[suit] + 1, 10)) != numbers:
+            if set(range(self.getGoal(suit) + 1, 10)) != numbers:
                 return False
 
         for cardtype, count in special_cards.items():

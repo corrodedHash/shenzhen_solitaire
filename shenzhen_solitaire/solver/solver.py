@@ -84,7 +84,7 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
         count += 1
         if count > 5000:
             count = 0
-            print(f"{len(stack)} {sum(board.goal.values())}")
+            print(f"{len(stack)} {board.goal}")
 
         # _limit_stack_size(80)
 

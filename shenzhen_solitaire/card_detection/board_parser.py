@@ -211,7 +211,7 @@ def parse_goal_field(
     return best_card_name
 
 
-def parse_goal(image: np.ndarray, conf: Configuration) -> Dict[NumberCard.Suit, int]:
+def parse_goal(image: np.ndarray, conf: Configuration) -> List[Optional[NumberCard]]:
     goal_squares = card_finder.get_field_squares(
         image, fake_adjustment(conf.goal_adjustment), count_x=1, count_y=3
     )
@@ -219,11 +219,8 @@ def parse_goal(image: np.ndarray, conf: Configuration) -> Dict[NumberCard.Suit, 
         parse_goal_field(square, conf.catalogue, conf.green_card)
         for square in goal_squares
     ]
-    base_goal_dict = {suit: 0 for suit in NumberCard.Suit}
-    base_goal_dict.update(
-        {x.suit: x.number for x in (x for x in goal_list if x is not None)}
-    )
-    return base_goal_dict
+    
+    return goal_list
 
 
 def parse_board(image: np.ndarray, conf: Configuration) -> Board:

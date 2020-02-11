@@ -2,7 +2,7 @@
 
 import copy
 import unittest
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 
 import cv2
 import numpy as np
@@ -79,8 +79,8 @@ class CardDetectionTest(unittest.TestCase):
 
     def test_goal_parsing(self) -> None:
         loaded_config = configuration.load("test_config.zip")
-        imagenames: List[Tuple[str, List[NumberCard]]] = [
-            ("BaiBlack", [NumberCard(NumberCard.Suit.Green, 2)],),
+        imagenames: List[Tuple[str, List[Optional[NumberCard]]]] = [
+            ("BaiBlack", [NumberCard(NumberCard.Suit.Green, 2), None, None],),
             (
                 "BaiShiny",
                 [
@@ -94,15 +94,13 @@ class CardDetectionTest(unittest.TestCase):
                 [
                     NumberCard(NumberCard.Suit.Red, 1),
                     NumberCard(NumberCard.Suit.Black, 1),
+                    None,
                 ],
             ),
-            ("FaShiny", [NumberCard(NumberCard.Suit.Green, 2)]),
-            ("ZhongShiny", [NumberCard(NumberCard.Suit.Green, 2)]),
+            ("FaShiny", [NumberCard(NumberCard.Suit.Green, 2), None, None]),
+            ("ZhongShiny", [NumberCard(NumberCard.Suit.Green, 2), None, None]),
         ]
-        base_goal_dict = {suit: 0 for suit in NumberCard.Suit}
         for imagename, goal in imagenames:
             image = cv2.imread(f"pictures/specific/{imagename}.jpg")
-            my_goal_dict = copy.deepcopy(base_goal_dict)
-            my_goal_dict.update({x.suit: x.number for x in goal})
             my_board = board_parser.parse_board(image, loaded_config)
-            self.assertDictEqual(my_goal_dict, my_board.goal)
+            self.assertListEqual(goal, my_board.goal)

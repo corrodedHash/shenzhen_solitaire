@@ -1,11 +1,12 @@
 """Contains actions that can be used on the board"""
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from dataclasses import dataclass
 from .. import board
 
 
 class Action:
     """Base class for a card move action on a solitaire board"""
+
     _before_state: int = 0
     _after_state: int = 0
 
@@ -36,26 +37,30 @@ class GoalAction(Action):
 
     card: board.NumberCard
     source_id: int
+    source_row_index: Optional[int]
     source_position: board.Position
+    goal_id: int
+    obvious: bool
 
     def _apply(self, action_board: board.Board) -> None:
         """Do action"""
+        assert action_board.getGoalId(self.card.suit) == self.goal_id
+        assert action_board.getGoal(self.card.suit) + 1 == self.card.number
         if self.source_position == board.Position.Field:
             assert action_board.field[self.source_id][-1] == self.card
-            assert action_board.goal[self.card.suit] + 1 == self.card.number
             action_board.field[self.source_id].pop()
-            action_board.goal[self.card.suit] += 1
+            action_board.incGoal(self.card.suit)
         elif self.source_position == board.Position.Bunker:
             assert action_board.bunker[self.source_id] == self.card
-            assert action_board.goal[self.card.suit] + 1 == self.card.number
             action_board.bunker[self.source_id] = None
-            action_board.goal[self.card.suit] += 1
+            action_board.incGoal(self.card.suit)
         else:
             raise RuntimeError("Unknown position")
 
     def _undo(self, action_board: board.Board) -> None:
         """Undo action"""
-        assert action_board.goal[self.card.suit] == self.card.number
+        assert action_board.getGoalId(self.card.suit) == self.goal_id
+        assert action_board.getGoal(self.card.suit) == self.card.number
         if self.source_position == board.Position.Field:
             action_board.field[self.source_id].append(self.card)
         elif self.source_position == board.Position.Bunker:
@@ -63,7 +68,7 @@ class GoalAction(Action):
             action_board.bunker[self.source_id] = self.card
         else:
             raise RuntimeError("Unknown position")
-        action_board.goal[self.card.suit] -= 1
+        action_board.setGoal(self.card.suit, action_board.getGoal(self.card.suit) - 1)
 
 
 @dataclass
@@ -73,6 +78,7 @@ class BunkerizeAction(Action):
     card: board.Card
     bunker_id: int
     field_id: int
+    field_row_index: int
     to_bunker: bool
 
     def _move_from_bunker(self, action_board: board.Board) -> None:
@@ -107,21 +113,17 @@ class MoveAction(Action):
 
     cards: List[board.Card]
     source_id: int
+    source_row_index: int
     destination_id: int
+    destination_row_index: int
 
-    def _shift(
-            self,
-            action_board: board.Board,
-            source: int,
-            dest: int) -> None:
+    def _shift(self, action_board: board.Board, source: int, dest: int) -> None:
         """Shift a card from the field id 'source' to field id 'dest'"""
 
-        for stack_offset, card in enumerate(
-                self.cards, start=-len(self.cards)):
+        for stack_offset, card in enumerate(self.cards, start=-len(self.cards)):
             assert action_board.field[source][stack_offset] == card
 
-        action_board.field[source] = action_board.field[
-            source][:-len(self.cards)]
+        action_board.field[source] = action_board.field[source][: -len(self.cards)]
         action_board.field[dest].extend(self.cards)
 
     def _apply(self, action_board: board.Board) -> None:
@@ -174,8 +176,7 @@ class DragonKillAction(Action):
 
     def _undo(self, action_board: board.Board) -> None:
         """Undo action"""
-        assert action_board.bunker[self.destination_bunker_id] == (
-            self.dragon, 4)
+        assert action_board.bunker[self.destination_bunker_id] == (self.dragon, 4)
         assert len(self.source_stacks) == 4
         action_board.bunker[self.destination_bunker_id] = None
         for position, index in self.source_stacks:
@@ -192,12 +193,12 @@ class HuaKillAction(Action):
     """Remove the flower card"""
 
     source_field_id: int
+    source_field_row_index: int
 
     def _apply(self, action_board: board.Board) -> None:
         """Do action"""
         assert not action_board.flower_gone
-        assert (action_board.field[self.source_field_id][-1]
-                == board.SpecialCard.Hua)
+        assert action_board.field[self.source_field_id][-1] == board.SpecialCard.Hua
         action_board.field[self.source_field_id].pop()
         action_board.flower_gone = True
 

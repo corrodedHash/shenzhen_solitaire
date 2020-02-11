@@ -2,19 +2,22 @@
 from typing import Iterator, List, Tuple
 from .. import board
 from . import board_actions
+import pdb
 
 
 def possible_huakill_action(
-        search_board: board.Board
+    search_board: board.Board,
 ) -> Iterator[board_actions.HuaKillAction]:
     """Check if the flowercard can be eliminated"""
     for index, stack in enumerate(search_board.field):
         if stack and stack[-1] == board.SpecialCard.Hua:
-            yield board_actions.HuaKillAction(source_field_id=index)
+            yield board_actions.HuaKillAction(
+                source_field_id=index, source_field_row_index=len(stack) - 1
+            )
 
 
 def possible_dragonkill_actions(
-        search_board: board.Board
+    search_board: board.Board,
 ) -> Iterator[board_actions.DragonKillAction]:
     """Enumerate all possible dragon kills"""
     possible_dragons = [
@@ -30,8 +33,7 @@ def possible_dragonkill_actions(
         possible_dragons = new_possible_dragons
 
     for dragon in possible_dragons:
-        bunker_dragons = [i for i, d in
-                          enumerate(search_board.bunker) if d == dragon]
+        bunker_dragons = [i for i, d in enumerate(search_board.bunker) if d == dragon]
         field_dragons = [
             i for i, f in enumerate(search_board.field) if f if f[-1] == dragon
         ]
@@ -46,8 +48,7 @@ def possible_dragonkill_actions(
             ][0]
 
         source_stacks = [(board.Position.Bunker, i) for i in bunker_dragons]
-        source_stacks.extend([(board.Position.Field, i)
-                              for i in field_dragons])
+        source_stacks.extend([(board.Position.Field, i) for i in field_dragons])
 
         yield board_actions.DragonKillAction(
             dragon=dragon,
@@ -57,12 +58,10 @@ def possible_dragonkill_actions(
 
 
 def possible_bunkerize_actions(
-        search_board: board.Board
+    search_board: board.Board,
 ) -> Iterator[board_actions.BunkerizeAction]:
     """Enumerates all possible card moves from the field to the bunker"""
-    open_bunker_list = [
-        i for i, x in enumerate(
-            search_board.bunker) if x is None]
+    open_bunker_list = [i for i, x in enumerate(search_board.bunker) if x is None]
 
     if not open_bunker_list:
         return
@@ -74,13 +73,14 @@ def possible_bunkerize_actions(
         yield board_actions.BunkerizeAction(
             card=stack[-1],
             field_id=index,
+            field_row_index=len(stack) - 1,
             bunker_id=open_bunker,
-            to_bunker=True
+            to_bunker=True,
         )
 
 
 def possible_debunkerize_actions(
-        search_board: board.Board
+    search_board: board.Board,
 ) -> Iterator[board_actions.BunkerizeAction]:
     """Enumerates all possible card moves from the bunker to the field"""
     bunker_number_cards = [
@@ -102,12 +102,13 @@ def possible_debunkerize_actions(
                 card=card,
                 bunker_id=index,
                 field_id=other_index,
-                to_bunker=False
+                field_row_index=len(other_stack),
+                to_bunker=False,
             )
 
 
 def possible_goal_move_actions(
-        search_board: board.Board
+    search_board: board.Board,
 ) -> Iterator[board_actions.GoalAction]:
     """Enumerates all possible moves from anywhere to the goal"""
     field_cards = [
@@ -117,20 +118,30 @@ def possible_goal_move_actions(
         if isinstance(stack[-1], board.NumberCard)
     ]
     bunker_cards = [
-        (board.Position.Bunker, index, stack)
-        for index, stack in enumerate(search_board.bunker)
-        if isinstance(stack, board.NumberCard)
+        (board.Position.Bunker, index, card)
+        for index, card in enumerate(search_board.bunker)
+        if isinstance(card, board.NumberCard)
     ]
     top_cards = field_cards + bunker_cards
 
-    for suit, number in search_board.goal.items():
-        for source, index, stack in top_cards:
-            if not (stack.suit == suit and stack.number == number + 1):
-                continue
-            yield board_actions.GoalAction(
-                card=stack, source_id=index, source_position=source
-            )
-            break
+    for source, index, card in top_cards:
+        if not (card.number == search_board.getGoal(card.suit) + 1):
+            continue
+        obvious = all(
+            search_board.getGoal(other_suit) >= search_board.getGoal(card.suit)
+            for other_suit in set(board.NumberCard.Suit) - {card.suit}
+        )
+        yield board_actions.GoalAction(
+            card=card,
+            source_id=index,
+            source_row_index=len(search_board.field[index]) - 1
+            if source == board.Position.Field
+            else None,
+            source_position=source,
+            goal_id=search_board.getGoalId(card.suit),
+            obvious=obvious,
+        )
+        break
 
 
 def _can_stack(bottom: board.Card, top: board.Card) -> bool:
@@ -163,42 +174,44 @@ def _get_cardstacks(search_board: board.Board) -> List[List[board.Card]]:
 
 
 def possible_field_move_actions(
-        search_board: board.Board
+    search_board: board.Board,
 ) -> Iterator[board_actions.MoveAction]:
     """Enumerate all possible move actions
     from one field stack to another field stack"""
     first_empty_field_id = -1
-    cardstacks = [(index, stack)
-                  for index, stack in enumerate(_get_cardstacks(search_board))]
-    cardstacks = [x for x in cardstacks if x[1]]
+    cardstacks = [x for x in enumerate(_get_cardstacks(search_board)) if x[1]]
     cardstacks = sorted(cardstacks, key=lambda x: len(x[1]))
     substacks: List[Tuple[int, List[board.Card]]] = []
 
     for index, stack in cardstacks:
-        substacks.extend((index, substack)
-                         for substack in (stack[i:]
-                                          for i in range(len(stack))))
+        substacks.extend(
+            (index, substack) for substack in (stack[i:] for i in range(len(stack)))
+        )
 
-    for index, substack in substacks:
-        for other_index, other_stack in enumerate(search_board.field):
-            if index == other_index:
+    for source_index, source_substack in substacks:
+        for destination_index, destination_stack in enumerate(search_board.field):
+            if source_index == destination_index:
                 continue
-            if other_stack:
-                if not _can_stack(other_stack[-1], substack[0]):
+            if destination_stack:
+                if not _can_stack(destination_stack[-1], source_substack[0]):
                     continue
-            elif len(substack) == len(search_board.field[index]):
+            elif len(source_substack) == len(search_board.field[source_index]):
                 continue
             elif first_empty_field_id == -1:
-                first_empty_field_id = other_index
-            elif other_index != first_empty_field_id:
+                first_empty_field_id = destination_index
+            elif destination_index != first_empty_field_id:
                 continue
             yield board_actions.MoveAction(
-                cards=substack, source_id=index, destination_id=other_index
+                cards=source_substack,
+                source_id=source_index,
+                source_row_index=len(search_board.field[source_index])
+                - len(source_substack),
+                destination_id=destination_index,
+                destination_row_index=len(destination_stack),
             )
 
 
-def possible_actions(
-        search_board: board.Board) -> Iterator[board_actions.Action]:
+def possible_actions(search_board: board.Board) -> Iterator[board_actions.Action]:
     """Enumerate all possible actions on the current search_board"""
     yield from possible_huakill_action(search_board)
     yield from possible_dragonkill_actions(search_board)
