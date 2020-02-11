@@ -3,15 +3,12 @@ from typing import List, Iterator, Optional
 from ..board import Board
 from . import board_actions
 from .board_possibilities import possible_actions
-from .board_actions import (
-    MoveAction,
-    GoalAction,
-    HuaKillAction,
-    DragonKillAction)
+from .board_actions import MoveAction, GoalAction, HuaKillAction, DragonKillAction
 
 
 class ActionStack:
     """Stack of chosen actions on the board"""
+
     iterator_stack: List[Iterator[board_actions.Action]]
     action_stack: List[Optional[board_actions.Action]]
     index_stack: List[int]
@@ -61,15 +58,13 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
             stack.pop()
             assert stack.action_stack[-1] is not None
             stack.action_stack[-1].undo(board)
-            assert (board.state_identifier
-                    in state_set)
+            assert board.state_identifier in state_set
 
     def _backtrack_action() -> None:
         stack.pop()
         assert stack.action_stack[-1] is not None
         stack.action_stack[-1].undo(board)
-        assert (board.state_identifier
-                in state_set)
+        assert board.state_identifier in state_set
 
     def _skip_loop_move(action: board_actions.Action) -> bool:
         if isinstance(action, MoveAction):
@@ -88,8 +83,7 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
 
         # _limit_stack_size(80)
 
-        assert (board.state_identifier ==
-                stack.state_stack[-1])
+        assert board.state_identifier == stack.state_stack[-1]
         action = stack.get()
 
         if not action:
@@ -105,9 +99,8 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
             yield stack.action_stack
             stack.action_stack[-1].undo(board)
             while isinstance(
-                    stack.action_stack[-1], (GoalAction,
-                                             HuaKillAction,
-                                             DragonKillAction)):
+                stack.action_stack[-1], (GoalAction, HuaKillAction, DragonKillAction)
+            ):
                 stack.pop()
                 stack.action_stack[-1].undo(board)
             continue

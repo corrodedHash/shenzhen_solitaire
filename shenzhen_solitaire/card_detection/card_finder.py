@@ -26,6 +26,7 @@ def get_field_squares(
         squares.append(get_square(adjustment, index_x, index_y))
     return _extract_squares(image, squares)
 
+
 def catalogue_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
     """Run manual cataloging for given squares"""
     cv2.namedWindow("Catalogue", cv2.WINDOW_NORMAL)
@@ -33,7 +34,7 @@ def catalogue_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
     result: List[Tuple[np.ndarray, Card]] = []
     print("Card ID is [B]ai, [Z]hong, [F]a, [H]ua, [R]ed, [G]reen, [B]lack")
     print("Numbercard e.g. R3")
-    abort_row = 'a'
+    abort_row = "a"
     special_card_map = {
         "b": SpecialCard.Bai,
         "z": SpecialCard.Zhong,

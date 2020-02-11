@@ -15,7 +15,12 @@ def main() -> None:
     image = cv2.imread("pictures/specific/BaiShiny.jpg")
 
     goal_adjustment = adjustment.adjust_squares(
-        image, count_x=3, count_y=1, adjustment=adjustment.Adjustment(**{"x": 1490, "y": 310, "w": 19, "h": 21, "dx": 152, "dy": 0})
+        image,
+        count_x=3,
+        count_y=1,
+        adjustment=adjustment.Adjustment(
+            **{"x": 1490, "y": 310, "w": 19, "h": 21, "dx": 152, "dy": 0}
+        ),
     )
     print(json.dumps(dataclasses.asdict(goal_adjustment)))
 

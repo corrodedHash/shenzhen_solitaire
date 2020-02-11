@@ -12,8 +12,12 @@ def drag(
 ) -> None:
 
     pyautogui.moveTo(x=src[0] + offset[0], y=src[1] + offset[1])
-    pyautogui.dragTo(x=dst[0] + offset[0], y=dst[1] + offset[1],
-                     duration=0.4, tween=lambda x: 0 if x < 0.5 else 1)
+    pyautogui.dragTo(
+        x=dst[0] + offset[0],
+        y=dst[1] + offset[1],
+        duration=0.4,
+        tween=lambda x: 0 if x < 0.5 else 1,
+    )
 
 
 def click(point: Tuple[int, int], offset: Tuple[int, int] = (0, 0)) -> None:
@@ -21,6 +25,7 @@ def click(point: Tuple[int, int], offset: Tuple[int, int] = (0, 0)) -> None:
     pyautogui.mouseDown()
     time.sleep(0.2)
     pyautogui.mouseUp()
+
 
 def handle_action(
     action: board_actions.Action,
@@ -68,7 +73,10 @@ def handle_action(
             index_x=0,
             index_y=dragon_sequence.index(action.dragon),
         )
-        click((field_x + (size_x - field_x) // 2, field_y + (size_y - field_y) // 2), offset)
+        click(
+            (field_x + (size_x - field_x) // 2, field_y + (size_y - field_y) // 2),
+            offset,
+        )
         time.sleep(0.5)
         return
     if isinstance(action, board_actions.GoalAction):

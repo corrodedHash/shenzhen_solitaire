@@ -219,7 +219,7 @@ def parse_goal(image: np.ndarray, conf: Configuration) -> List[Optional[NumberCa
         parse_goal_field(square, conf.catalogue, conf.green_card)
         for square in goal_squares
     ]
-    
+
     return goal_list
 
 
