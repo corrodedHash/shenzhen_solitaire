@@ -51,7 +51,7 @@ class ActionStack:
 
 
 def solve(
-    board: Board, *, timeout: Optional[float] = None
+    board: Board, *, timeout: Optional[float] = None, verbose: bool = False
 ) -> Iterator[List[board_actions.Action]]:
     """Solve a solitaire puzzle"""
     state_set = {board.state_identifier}
@@ -85,7 +85,8 @@ def solve(
         count += 1
         if count > 5000:
             count = 0
-            print(f"{time.time() - iter_start} {len(stack)} {board.goal}")
+            if verbose:
+                print(f"{time.time() - iter_start} {len(stack)} {board.goal}")
             if timeout is not None and time.time() - iter_start > timeout:
                 return
 

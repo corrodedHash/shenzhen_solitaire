@@ -7,7 +7,7 @@ import numpy as np
 
 import pyautogui
 import shenzhen_solitaire.card_detection.configuration as configuration
-import shenzhen_solitaire.clicker.main as clicker
+import shenzhen_solitaire.clicker as clicker
 import shenzhen_solitaire.solver.solver as solver
 from shenzhen_solitaire.card_detection.board_parser import parse_board
 
