@@ -125,7 +125,6 @@ def possible_goal_move_actions(
     ]
     top_cards = field_cards + bunker_cards
 
-    result: List[board_actions.GoalAction] = []
     for source, index, card in top_cards:
         if not (card.number == search_board.getGoal(card.suit) + 1):
             continue
@@ -144,9 +143,6 @@ def possible_goal_move_actions(
             obvious=obvious,
         )
         break
-
-    result = sorted(result, key=lambda x: not x.obvious)
-    yield from iter(result)
 
 
 def _can_stack(bottom: board.Card, top: board.Card) -> bool:
@@ -216,11 +212,19 @@ def possible_field_move_actions(
             )
 
 
-def possible_actions(search_board: board.Board) -> Iterator[board_actions.Action]:
+def possible_actions(search_board: board.Board) -> List[board_actions.Action]:
     """Enumerate all possible actions on the current search_board"""
-    yield from possible_huakill_action(search_board)
-    yield from possible_dragonkill_actions(search_board)
-    yield from possible_goal_move_actions(search_board)
-    yield from possible_debunkerize_actions(search_board)
-    yield from possible_field_move_actions(search_board)
-    yield from possible_bunkerize_actions(search_board)
+    result: List[board_actions.Action] = [
+        *list(possible_huakill_action(search_board)),
+        *list(possible_dragonkill_actions(search_board)),
+        *list(possible_goal_move_actions(search_board)),
+        *list(possible_debunkerize_actions(search_board)),
+        *list(possible_field_move_actions(search_board)),
+        *list(possible_bunkerize_actions(search_board)),
+    ]
+
+    for x in result:
+        if x.automatic():
+            return [x]
+
+    return result

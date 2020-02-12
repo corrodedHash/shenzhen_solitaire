@@ -78,7 +78,7 @@ def handle_action(
             (field_x + (size_x - field_x) // 2, field_y + (size_y - field_y) // 2),
             offset,
         )
-        time.sleep(0.5)
+        time.sleep(1)
         return
     if isinstance(action, board_actions.GoalAction):
         dst_x, dst_y, _, _ = adjustment.get_square(
@@ -100,12 +100,6 @@ def handle_action(
         return
     raise AssertionError("You forgot an Action type")
 
-def automatic(action: board_actions.Action) -> bool:
-    if isinstance(action, board_actions.HuaKillAction):
-        return True
-    if isinstance(action, board_actions.GoalAction) and action.obvious:
-        return True
-    return False
 
 def handle_actions(
     actions: List[board_actions.Action],
@@ -115,9 +109,10 @@ def handle_actions(
     automatic_count = 0
     for action in actions:
         print(action)
-        if automatic(action):
+        if action.automatic():
             automatic_count += 1
         else:
             time.sleep(0.5 * automatic_count)
             automatic_count = 0
             handle_action(action, offset, conf)
+    time.sleep(0.5 * automatic_count)

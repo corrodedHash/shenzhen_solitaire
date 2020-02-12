@@ -31,6 +31,13 @@ class Action:
         self._undo(action_board)
         assert action_board.state_identifier == self._before_state
 
+    def automatic(self) -> bool:
+        if isinstance(self, HuaKillAction):
+            return True
+        if isinstance(self, GoalAction) and self.obvious:
+            return True
+        return False
+
 
 @dataclass
 class GoalAction(Action):
