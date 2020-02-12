@@ -114,6 +114,7 @@ def handle_actions(
 ) -> None:
     automatic_count = 0
     for action in actions:
+        print(action)
         if automatic(action):
             automatic_count += 1
         else:

@@ -87,7 +87,7 @@ def solve(
             count = 0
             print(f"{time.time() - iter_start} {len(stack)} {board.goal}")
             if timeout is not None and time.time() - iter_start > timeout:
-                raise StopIteration 
+                return
 
         # _limit_stack_size(80)
 

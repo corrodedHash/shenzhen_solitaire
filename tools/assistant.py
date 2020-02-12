@@ -18,6 +18,7 @@ NEW_BUTTON = (1900, 1100)
 
 def solve() -> None:
     with tempfile.TemporaryDirectory() as screenshot_dir:
+        print("Taking screenshot")
         screenshot_file = Path(screenshot_dir) / "screenshot.png"
         screenshot = pyautogui.screenshot(region=(*OFFSET, *SIZE))
         screenshot.save(screenshot_file)
@@ -27,18 +28,17 @@ def solve() -> None:
     conf = configuration.load("test_config.zip")
     board = parse_board(image, conf)
     assert board.check_correct()
-    try:
-        solution = list(next(solver.solve(board, timeout=10)))
-    except StopIteration:
+    solution_iterator = next(solver.solve(board, timeout=10), None)
+    if solution_iterator is None:
         clicker.click(NEW_BUTTON, OFFSET)
         time.sleep(10)
         return
+    solution=list(solution_iterator)
     print(f"Solved in {len(solution)} steps")
-    for step in solution:
-        print(step)
-        clicker.handle_action(step, OFFSET, conf)
+    clicker.handle_actions(solution, OFFSET, conf)
+    time.sleep(2)
     clicker.click(NEW_BUTTON, OFFSET)
-    time.sleep(10)
+    time.sleep(7)
 
 
 def main() -> None:
