@@ -12,16 +12,16 @@ from .board_possibilities import possible_actions
 @dataclass
 class ActionStackFrame:
     iterator: Iterator[board_actions.Action]
-    action: Optional[board_actions.Action]
+    last_action: Optional[board_actions.Action]
     state: int
 
     def next(self) -> Optional[board_actions.Action]:
         """Get next iteration of top action iterator"""
         try:
-            self.action = next(self.iterator)
+            self.last_action = next(self.iterator)
         except StopIteration:
             return None
-        return self.action
+        return self.last_action
 
 
 class ActionStack:
@@ -35,7 +35,7 @@ class ActionStack:
         self.frames.append(
             ActionStackFrame(
                 iterator=iter(possible_actions(board)),
-                action=None,
+                last_action=None,
                 state=board.state_identifier,
             )
         )
@@ -64,23 +64,23 @@ def solve(
     def _limit_stack_size(stack_size: int) -> None:
         if len(stack) == stack_size:
             stack.pop()
-            assert stack.top.action is not None
-            stack.top.action.undo(board)
+            assert stack.top.last_action is not None
+            stack.top.last_action.undo(board)
             assert board.state_identifier in state_set
 
     def _backtrack_action() -> None:
         stack.pop()
-        assert stack.top.action is not None
-        stack.top.action.undo(board)
+        assert stack.top.last_action is not None
+        stack.top.last_action.undo(board)
         assert board.state_identifier in state_set
 
     def _skip_loop_move(action: board_actions.Action) -> bool:
         if not isinstance(action, MoveAction):
             return False
         for frame in stack.frames[-2::-1]:
-            if not isinstance(frame.action, MoveAction):
+            if not isinstance(frame.last_action, MoveAction):
                 continue
-            if frame.action.cards == action.cards:
+            if frame.last_action.cards == action.cards:
                 return True
         return False
 
@@ -111,8 +111,10 @@ def solve(
         action.apply(board)
 
         if board.solved():
-            assert all(x.action is not None for x in stack.frames)
-            yield [typing.cast(board_actions.Action, x.action) for x in stack.frames]
+            assert all(x.last_action is not None for x in stack.frames)
+            yield [
+                typing.cast(board_actions.Action, x.last_action) for x in stack.frames
+            ]
             iter_start = time.time()
             action.undo(board)
             assert board.state_identifier in state_set
