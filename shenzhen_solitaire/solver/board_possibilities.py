@@ -129,7 +129,7 @@ def possible_goal_move_actions(
         if not (card.number == search_board.getGoal(card.suit) + 1):
             continue
         obvious = all(
-            search_board.getGoal(other_suit) >= card.number - 1
+            search_board.getGoal(other_suit) >= card.number - 2
             for other_suit in set(board.NumberCard.Suit) - {card.suit}
         )
         yield board_actions.GoalAction(

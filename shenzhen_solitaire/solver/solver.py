@@ -86,7 +86,7 @@ def solve(
 
     iter_start = time.time()
     count = 0
-    while stack:
+    while len(stack) > 0:
 
         count += 1
         if count > 5000:

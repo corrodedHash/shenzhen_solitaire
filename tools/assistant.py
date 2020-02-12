@@ -4,6 +4,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import os
 
 import pyautogui
 import shenzhen_solitaire.card_detection.configuration as configuration
@@ -28,14 +29,21 @@ def solve() -> None:
     conf = configuration.load("test_config.zip")
     board = parse_board(image, conf)
     assert board.check_correct()
-    solution_iterator = next(solver.solve(board, timeout=10), None)
+    solution_iterator = next(solver.solve(board, timeout=10, verbose=True), None)
     if solution_iterator is None:
         clicker.click(NEW_BUTTON, OFFSET)
         time.sleep(10)
+        fd, outfile = tempfile.mkstemp(
+            dir="E:/shenzhen-solitaire/unsolved", suffix=".png"
+        )
+        sock = os.fdopen(fd, "w")
+        sock.close()
+        cv2.imwrite(outfile, image)
         return
-    solution=list(solution_iterator)
+    solution = list(solution_iterator)
     print(f"Solved in {len(solution)} steps")
     clicker.handle_actions(solution, OFFSET, conf)
+    print("Solved")
     time.sleep(2)
     clicker.click(NEW_BUTTON, OFFSET)
     time.sleep(7)

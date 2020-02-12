@@ -3,9 +3,12 @@ import unittest
 
 from shenzhen_solitaire.board import NumberCard, Position
 from shenzhen_solitaire.solver import board_possibilities
-from shenzhen_solitaire.solver.board_actions import (BunkerizeAction,
-                                                     GoalAction, HuaKillAction,
-                                                     MoveAction)
+from shenzhen_solitaire.solver.board_actions import (
+    BunkerizeAction,
+    GoalAction,
+    HuaKillAction,
+    MoveAction,
+)
 
 from .boards import TEST_BOARD
 

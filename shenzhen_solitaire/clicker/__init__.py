@@ -8,6 +8,7 @@ import shenzhen_solitaire.card_detection.configuration as configuration
 import shenzhen_solitaire.solver.board_actions as board_actions
 import warnings
 
+
 def drag(
     src: Tuple[int, int], dst: Tuple[int, int], offset: Tuple[int, int] = (0, 0)
 ) -> None:
@@ -21,11 +22,32 @@ def drag(
     )
 
 
+def dragSquare(
+    src: Tuple[int, int, int, int],
+    dst: Tuple[int, int, int, int],
+    offset: Tuple[int, int] = (0, 0),
+) -> None:
+    drag(
+        (src[0] + (src[2] - src[0]) // 2, src[1] + (src[3] - src[1]) // 2),
+        (dst[0] + (dst[2] - dst[0]) // 2, dst[1] + (dst[3] - dst[1]) // 2),
+        offset,
+    )
+
+
 def click(point: Tuple[int, int], offset: Tuple[int, int] = (0, 0)) -> None:
     pyautogui.moveTo(x=point[0] + offset[0], y=point[1] + offset[1])
     pyautogui.mouseDown()
     time.sleep(0.2)
     pyautogui.mouseUp()
+
+
+def clickSquare(
+    field: Tuple[int, int, int, int], offset: Tuple[int, int] = (0, 0)
+) -> None:
+    click(
+        (field[0] + (field[2] - field[0]) // 2, field[1] + (field[3] - field[1]) // 2),
+        offset,
+    )
 
 
 def handle_action(
@@ -34,34 +56,34 @@ def handle_action(
     conf: configuration.Configuration,
 ) -> None:
     if isinstance(action, board_actions.MoveAction):
-        src_x, src_y, _, _ = adjustment.get_square(
+        src = adjustment.get_square(
             conf.field_adjustment,
             index_x=action.source_id,
             index_y=action.source_row_index,
         )
-        dst_x, dst_y, _, _ = adjustment.get_square(
+        dst = adjustment.get_square(
             conf.field_adjustment,
             index_x=action.destination_id,
             index_y=action.destination_row_index,
         )
-        drag((src_x, src_y), (dst_x, dst_y), offset)
+        dragSquare(src, dst, offset)
         return
     if isinstance(action, board_actions.HuaKillAction):
         warnings.warn("Hua kill should be handled before handle_action")
         return
     if isinstance(action, board_actions.BunkerizeAction):
-        field_x, field_y, _, _ = adjustment.get_square(
+        field = adjustment.get_square(
             conf.field_adjustment,
             index_x=action.field_id,
             index_y=action.field_row_index,
         )
-        bunker_x, bunker_y, _, _ = adjustment.get_square(
+        bunker = adjustment.get_square(
             conf.bunker_adjustment, index_x=action.bunker_id, index_y=0,
         )
         if action.to_bunker:
-            drag((field_x, field_y), (bunker_x, bunker_y), offset)
+            dragSquare(field, bunker, offset)
         else:
-            drag((bunker_x, bunker_y), (field_x, field_y), offset)
+            dragSquare(bunker, field, offset)
         return
     if isinstance(action, board_actions.DragonKillAction):
         dragon_sequence = [
@@ -69,34 +91,33 @@ def handle_action(
             board.SpecialCard.Fa,
             board.SpecialCard.Bai,
         ]
-        field_x, field_y, size_x, size_y = adjustment.get_square(
+        field = adjustment.get_square(
             conf.special_button_adjustment,
             index_x=0,
             index_y=dragon_sequence.index(action.dragon),
         )
-        click(
-            (field_x + (size_x - field_x) // 2, field_y + (size_y - field_y) // 2),
-            offset,
+        clickSquare(
+            field, offset,
         )
         time.sleep(1)
         return
     if isinstance(action, board_actions.GoalAction):
-        dst_x, dst_y, _, _ = adjustment.get_square(
+        dst = adjustment.get_square(
             conf.goal_adjustment, index_x=action.goal_id, index_y=0,
         )
         if action.source_position == board.Position.Field:
             assert action.source_row_index is not None
-            src_x, src_y, _, _ = adjustment.get_square(
+            src = adjustment.get_square(
                 conf.field_adjustment,
                 index_x=action.source_id,
                 index_y=action.source_row_index,
             )
         else:
             assert action.source_position == board.Position.Bunker
-            src_x, src_y, _, _ = adjustment.get_square(
+            src = adjustment.get_square(
                 conf.bunker_adjustment, index_x=action.source_id, index_y=0,
             )
-        drag((src_x, src_y), (dst_x, dst_y), offset)
+        dragSquare(src, dst, offset)
         return
     raise AssertionError("You forgot an Action type")
 
@@ -109,7 +130,7 @@ def handle_actions(
     automatic_count = 0
     for action in actions:
         print(action)
-        if action.automatic():
+        if isinstance(action, board_actions.HuaKillAction):
             automatic_count += 1
         else:
             time.sleep(0.5 * automatic_count)
