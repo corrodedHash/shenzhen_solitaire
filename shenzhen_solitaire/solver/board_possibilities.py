@@ -1,8 +1,9 @@
 """Contains function to iterate different kinds of possible actions"""
+import pdb
 from typing import Iterator, List, Tuple
+
 from .. import board
 from . import board_actions
-import pdb
 
 
 def possible_huakill_action(
@@ -124,6 +125,7 @@ def possible_goal_move_actions(
     ]
     top_cards = field_cards + bunker_cards
 
+    result: List[board_actions.GoalAction] = []
     for source, index, card in top_cards:
         if not (card.number == search_board.getGoal(card.suit) + 1):
             continue
@@ -142,6 +144,9 @@ def possible_goal_move_actions(
             obvious=obvious,
         )
         break
+
+    result = sorted(result, key=lambda x: not x.obvious)
+    yield from iter(result)
 
 
 def _can_stack(bottom: board.Card, top: board.Card) -> bool:

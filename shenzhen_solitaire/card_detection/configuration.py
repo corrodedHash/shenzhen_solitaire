@@ -1,17 +1,18 @@
 """Contains configuration class"""
-import zipfile
-import json
-from typing import List, Tuple, Dict, Union
-import io
 import dataclasses
-from dataclasses import dataclass
-import tempfile
-import cv2
 import enum
+import io
+import json
+import tempfile
+import zipfile
+from dataclasses import dataclass
+from typing import Dict, List, Tuple, Union
+
+import cv2
 import numpy as np
-from . import adjustment
-from . import card_finder
+
 from .. import board
+from . import adjustment, card_finder
 
 ADJUSTMENT_FILE_NAME = "adjustment.json"
 

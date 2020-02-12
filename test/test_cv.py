@@ -2,7 +2,7 @@
 
 import copy
 import unittest
-from typing import List, Tuple, Union, Optional
+from typing import List, Optional, Tuple, Union
 
 import cv2
 import numpy as np

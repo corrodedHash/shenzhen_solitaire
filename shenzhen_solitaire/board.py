@@ -1,8 +1,8 @@
 """Contains board class"""
 import enum
-from typing import Union, List, Dict, Optional, Set, Tuple
-from dataclasses import dataclass
 import itertools
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 
 class SpecialCard(enum.Enum):

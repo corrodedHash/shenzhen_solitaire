@@ -1,14 +1,15 @@
-import pyautogui
-import cv2
-import numpy as np
+import tempfile
+import time
 from pathlib import Path
 
-from shenzhen_solitaire.card_detection.board_parser import parse_board
+import cv2
+import numpy as np
+
+import pyautogui
 import shenzhen_solitaire.card_detection.configuration as configuration
-import shenzhen_solitaire.solver.solver as solver
-import tempfile
 import shenzhen_solitaire.clicker.main as clicker
-import time
+import shenzhen_solitaire.solver.solver as solver
+from shenzhen_solitaire.card_detection.board_parser import parse_board
 
 OFFSET = (0, 0)
 SIZE = (2560, 1440)

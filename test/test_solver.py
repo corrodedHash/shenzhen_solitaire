@@ -1,6 +1,6 @@
 """Contains the SolverTest class"""
-import unittest
 import copy
+import unittest
 
 from shenzhen_solitaire.solver import solver
 

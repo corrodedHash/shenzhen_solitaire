@@ -1,6 +1,7 @@
 """Contains actions that can be used on the board"""
-from typing import List, Tuple, Optional
 from dataclasses import dataclass
+from typing import List, Optional, Tuple
+
 from .. import board
 
 

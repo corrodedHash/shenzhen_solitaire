@@ -1,9 +1,12 @@
 """Contains solver for solitaire"""
-from typing import List, Iterator, Optional
+import typing
+from typing import Iterator, List, Optional
+
 from ..board import Board
 from . import board_actions
+from .board_actions import (DragonKillAction, GoalAction, HuaKillAction,
+                            MoveAction)
 from .board_possibilities import possible_actions
-from .board_actions import MoveAction, GoalAction, HuaKillAction, DragonKillAction
 
 
 class ActionStack:

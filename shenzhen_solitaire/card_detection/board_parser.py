@@ -9,7 +9,7 @@ import numpy as np
 
 from ..board import Board, Card, NumberCard, SpecialCard
 from . import adjustment, card_finder
-from .configuration import Configuration, ButtonState
+from .configuration import ButtonState, Configuration
 
 
 def grouper(

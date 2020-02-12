@@ -1,5 +1,6 @@
-import numpy as np
 import cv2
+import numpy as np
+
 import shenzhen_solitaire.card_detection.configuration as configuration
 
 

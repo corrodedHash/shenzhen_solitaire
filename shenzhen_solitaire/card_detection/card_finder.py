@@ -1,12 +1,14 @@
 """Functions to detect card value"""
 
-from typing import List, Tuple, Optional, Dict
 import enum
 import itertools
-import numpy as np
+from typing import Dict, List, Optional, Tuple
+
 import cv2
-from .adjustment import Adjustment, get_square
+import numpy as np
+
 from ..board import Card, NumberCard, SpecialCard
+from .adjustment import Adjustment, get_square
 
 
 def _extract_squares(

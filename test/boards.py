@@ -1,5 +1,5 @@
 """Contains an example board to run tests on"""
-from shenzhen_solitaire.board import NumberCard, SpecialCard, Board
+from shenzhen_solitaire.board import Board, NumberCard, SpecialCard
 
 Suit = NumberCard.Suit
 

@@ -1,10 +1,11 @@
 """Contains functions to find significant pieces of a solitaire screenshot"""
 
-from typing import Optional, Tuple
-from dataclasses import dataclass
 import itertools
-import numpy
+from dataclasses import dataclass
+from typing import Optional, Tuple
+
 import cv2
+import numpy
 
 
 @dataclass

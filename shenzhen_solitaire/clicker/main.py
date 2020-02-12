@@ -1,10 +1,11 @@
-import shenzhen_solitaire.solver.board_actions as board_actions
-import shenzhen_solitaire.card_detection.configuration as configuration
-import shenzhen_solitaire.card_detection.adjustment as adjustment
-import shenzhen_solitaire.board as board
-from typing import List, Tuple
-import pyautogui
 import time
+from typing import List, Tuple
+
+import pyautogui
+import shenzhen_solitaire.board as board
+import shenzhen_solitaire.card_detection.adjustment as adjustment
+import shenzhen_solitaire.card_detection.configuration as configuration
+import shenzhen_solitaire.solver.board_actions as board_actions
 
 
 def drag(
