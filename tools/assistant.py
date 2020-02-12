@@ -16,6 +16,7 @@ OFFSET = (0, 0)
 SIZE = (2560, 1440)
 NEW_BUTTON = (1900, 1100)
 
+SAVE_UNSOLVED = False
 
 def solve() -> None:
     with tempfile.TemporaryDirectory() as screenshot_dir:
@@ -33,12 +34,13 @@ def solve() -> None:
     if solution_iterator is None:
         clicker.click(NEW_BUTTON, OFFSET)
         time.sleep(10)
-        fd, outfile = tempfile.mkstemp(
-            dir="E:/shenzhen-solitaire/unsolved", suffix=".png"
-        )
-        sock = os.fdopen(fd, "w")
-        sock.close()
-        cv2.imwrite(outfile, image)
+        if SAVE_UNSOLVED:
+            fd, outfile = tempfile.mkstemp(
+                dir="E:/shenzhen-solitaire/unsolved", suffix=".png"
+            )
+            sock = os.fdopen(fd, "w")
+            sock.close()
+            cv2.imwrite(outfile, image)
         return
     solution = list(solution_iterator)
     print(f"Solved in {len(solution)} steps")

@@ -77,7 +77,7 @@ class ChainTest(unittest.TestCase):
                 source_id=6,
                 source_row_index=2,
                 source_position=Position.Field,
-                obvious=False,
+                obvious=True,
                 goal_id=0,
             ),
         ]
