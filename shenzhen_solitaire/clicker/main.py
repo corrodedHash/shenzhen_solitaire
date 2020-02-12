@@ -6,7 +6,7 @@ import shenzhen_solitaire.board as board
 import shenzhen_solitaire.card_detection.adjustment as adjustment
 import shenzhen_solitaire.card_detection.configuration as configuration
 import shenzhen_solitaire.solver.board_actions as board_actions
-
+import warnings
 
 def drag(
     src: Tuple[int, int], dst: Tuple[int, int], offset: Tuple[int, int] = (0, 0)
@@ -47,7 +47,7 @@ def handle_action(
         drag((src_x, src_y), (dst_x, dst_y), offset)
         return
     if isinstance(action, board_actions.HuaKillAction):
-        time.sleep(1)
+        warnings.warn("Hua kill should be handled before handle_action")
         return
     if isinstance(action, board_actions.BunkerizeAction):
         field_x, field_y, _, _ = adjustment.get_square(
@@ -81,9 +81,6 @@ def handle_action(
         time.sleep(0.5)
         return
     if isinstance(action, board_actions.GoalAction):
-        if action.obvious:
-            time.sleep(1)
-            return
         dst_x, dst_y, _, _ = adjustment.get_square(
             conf.goal_adjustment, index_x=action.goal_id, index_y=0,
         )
@@ -103,11 +100,23 @@ def handle_action(
         return
     raise AssertionError("You forgot an Action type")
 
+def automatic(action: board_actions.Action) -> bool:
+    if isinstance(action, board_actions.HuaKillAction):
+        return True
+    if isinstance(action, board_actions.GoalAction) and action.obvious:
+        return True
+    return False
 
 def handle_actions(
     actions: List[board_actions.Action],
     offset: Tuple[int, int],
     conf: configuration.Configuration,
 ) -> None:
+    automatic_count = 0
     for action in actions:
-        handle_action(action, offset, conf)
+        if automatic(action):
+            automatic_count += 1
+        else:
+            time.sleep(0.5 * automatic_count)
+            automatic_count = 0
+            handle_action(action, offset, conf)

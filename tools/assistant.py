@@ -16,32 +16,26 @@ SIZE = (2560, 1440)
 NEW_BUTTON = (1900, 1100)
 
 
-def debug_screenshot(image):
-    cv2.namedWindow("Name", cv2.WINDOW_KEEPRATIO)
-    cv2.imshow("Name", image)
-    cv2.waitKey(0)
-    input()
-    cv2.destroyAllWindows()
-
-
 def solve() -> None:
-    screenshot_dir = Path(tempfile.mkdtemp())
-    screenshot_file = screenshot_dir / "screenshot.png"
-    screenshot = pyautogui.screenshot(region=(*OFFSET, *SIZE))
-    screenshot.save(screenshot_file)
-    image = cv2.imread(str(screenshot_file))
-    # debug_screenshot()
+    with tempfile.TemporaryDirectory() as screenshot_dir:
+        screenshot_file = Path(screenshot_dir) / "screenshot.png"
+        screenshot = pyautogui.screenshot(region=(*OFFSET, *SIZE))
+        screenshot.save(screenshot_file)
+        image = cv2.imread(str(screenshot_file))
 
     print("Solving")
     conf = configuration.load("test_config.zip")
     board = parse_board(image, conf)
-    print(board)
-    solution = list(next(solver.solve(board)))
-    print(*solution, sep="\n")
-    time.sleep(1)
+    assert board.check_correct()
+    try:
+        solution = list(next(solver.solve(board, timeout=10)))
+    except StopIteration:
+        clicker.click(NEW_BUTTON, OFFSET)
+        time.sleep(10)
+        return
+    print(f"Solved in {len(solution)} steps")
     for step in solution:
         print(step)
-        # time.sleep(0.5)
         clicker.handle_action(step, OFFSET, conf)
     clicker.click(NEW_BUTTON, OFFSET)
     time.sleep(10)

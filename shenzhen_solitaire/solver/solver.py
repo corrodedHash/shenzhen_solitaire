@@ -1,11 +1,11 @@
 """Contains solver for solitaire"""
 import typing
 from typing import Iterator, List, Optional
+import time
 
 from ..board import Board
 from . import board_actions
-from .board_actions import (DragonKillAction, GoalAction, HuaKillAction,
-                            MoveAction)
+from .board_actions import DragonKillAction, GoalAction, HuaKillAction, MoveAction
 from .board_possibilities import possible_actions
 
 
@@ -50,7 +50,9 @@ class ActionStack:
         return len(self.index_stack)
 
 
-def solve(board: Board) -> Iterator[List[board_actions.Action]]:
+def solve(
+    board: Board, *, timeout: Optional[float] = None
+) -> Iterator[List[board_actions.Action]]:
     """Solve a solitaire puzzle"""
     state_set = {board.state_identifier}
     stack = ActionStack()
@@ -77,12 +79,15 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
                         return True
         return False
 
+    iter_start = time.time()
     count = 0
     while stack:
         count += 1
         if count > 5000:
             count = 0
-            print(f"{len(stack)} {board.goal}")
+            print(f"{time.time() - iter_start} {len(stack)} {board.goal}")
+            if timeout is not None and time.time() - iter_start > timeout:
+                raise StopIteration 
 
         # _limit_stack_size(80)
 
@@ -100,6 +105,7 @@ def solve(board: Board) -> Iterator[List[board_actions.Action]]:
 
         if board.solved():
             yield stack.action_stack
+            iter_start = time.time()
             stack.action_stack[-1].undo(board)
             while isinstance(
                 stack.action_stack[-1], (GoalAction, HuaKillAction, DragonKillAction)
