@@ -27,8 +27,9 @@ def main() -> None:
         result = pool.imap_unordered(
             run_benchmark, [Path(benchmark) for benchmark in benchmark_files]
         )
-        for current_result in result:
-            print(current_result)
+        pool.close()
+        pool.join()
+        
 
 
 if __name__ == "__main__":

@@ -28,13 +28,17 @@ benchmark_files = [
 ]
 
 
+def runner(benchmark: Path) -> None:
+    run_benchmark(benchmark, timeout=60)
+
+
 def main() -> None:
     with multiprocessing.Pool() as pool:
         result = pool.imap_unordered(
-            run_benchmark, [Path(benchmark) for benchmark in benchmark_files]
+            runner, [Path(benchmark) for benchmark in benchmark_files]
         )
-        for current_result in result:
-            print(current_result)
+        pool.close()
+        pool.join()
 
 
 if __name__ == "__main__":

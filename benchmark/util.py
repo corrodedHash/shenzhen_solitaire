@@ -6,31 +6,58 @@ import cv2
 import shenzhen_solitaire.card_detection.configuration as configuration
 import shenzhen_solitaire.solver.solver as solver
 from shenzhen_solitaire.card_detection.board_parser import parse_board
+from typing import Callable, List, Tuple
 
 
-def run_benchmark(benchmark: Path) -> str:
+class SingleTimer:
+    def __init__(self, name: str, callback: Callable[[str, float], None]):
+        self.name = name
+        self.callback = callback
+        self.start = 0.0
+
+    def __enter__(self) -> None:
+        self.start = time.time()
+        return
+
+    def __exit__(self, *args) -> None:
+        self.callback(self.name, time.time() - self.start)
+        return
+
+
+class BenchmarkTimer:
+    def __init__(self) -> None:
+        self.timing: List[Tuple[str, float]] = []
+
+    def addTiming(self, name: str, duration: float) -> None:
+        self.timing.append((name, duration))
+
+    def stopwatch(self, name: str) -> SingleTimer:
+        return SingleTimer(name, self.addTiming)
+
+    @property
+    def timings(self) -> List[float]:
+        return [x[1] for x in self.timing]
+
+
+def run_benchmark(benchmark: Path, *, timeout: float = 10) -> None:
     result = ""
     result += f"{benchmark}:\n"
-    read_file_time = time.time()
-    image = cv2.imread(str(benchmark))
-    load_config_time = time.time()
-    result += f"\tLoad image:  {load_config_time - read_file_time:5.2f}\n"
+    my_timer = BenchmarkTimer()
+    with my_timer.stopwatch("Load image"):
+        image = cv2.imread(str(benchmark))
 
-    conf = configuration.load("test_config.zip")
-    parse_board_time = time.time()
-    result += f"\tLoad config: {parse_board_time - load_config_time:5.2f}\n"
+    with my_timer.stopwatch("Load configuration"):
+        conf = configuration.load("test_config.zip")
 
-    board = parse_board(image, conf)
-    solve_time = time.time()
-    result += f"\tParse image: {solve_time - parse_board_time:5.2f}\n"
+    with my_timer.stopwatch("Parse board"):
+        board = parse_board(image, conf)
 
-    solution_iterator = next(solver.solve(board, timeout=10), None)
-    finished_time = time.time()
-    result += f"\tSolve board: {finished_time - solve_time:5.2f}\n"
+    with my_timer.stopwatch("Solve board"):
+        solution_iterator = next(solver.solve(board, timeout=timeout), None)
 
-    assert board.check_correct()
-    if solution_iterator is None:
-        result += "\tSolution timed out\n"
-    else:
-        result += f"\tSolved in {len(list(solution_iterator))} steps\n"
-    return result
+    solved_string = (
+        "[" + ("Solved" if solution_iterator is not None else "Unsolved") + "]"
+    )
+    timings_string = "\t".join(f"{x:>5.2f}" for x in my_timer.timings)
+    print(f"{solved_string:<10} {benchmark}")
+    print(f"{timings_string}")

@@ -10,7 +10,8 @@
             "args": [
                 "-m",
                 "benchmark.timing"
-            ]
+            ],
+            "problemMatcher": []
         },
         {
             "label": "Unsolved benchmark",
@@ -20,6 +21,7 @@
                 "-m",
                 "benchmark.unsolved"
             ],
+            "problemMatcher": []
         }
     ]
 }
