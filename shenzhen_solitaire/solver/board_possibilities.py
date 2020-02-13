@@ -1,5 +1,4 @@
 """Contains function to iterate different kinds of possible actions"""
-import pdb
 from typing import Iterator, List, Tuple
 
 from .. import board
@@ -116,33 +115,38 @@ def possible_goal_move_actions(
         (board.Position.Field, index, stack[-1])
         for index, stack in enumerate(search_board.field)
         if stack
-        if isinstance(stack[-1], board.NumberCard)
     ]
     bunker_cards = [
         (board.Position.Bunker, index, card)
         for index, card in enumerate(search_board.bunker)
-        if isinstance(card, board.NumberCard)
     ]
-    top_cards = field_cards + bunker_cards
+    top_cards = [
+        x for x in field_cards + bunker_cards if isinstance(x[2], board.NumberCard)
+    ]
+    top_cards = [
+        x for x in top_cards if x[2].number == search_board.getGoal(x[2].suit) + 1
+    ]
 
+    result = []
     for source, index, card in top_cards:
-        if not (card.number == search_board.getGoal(card.suit) + 1):
-            continue
         obvious = all(
             search_board.getGoal(other_suit) >= card.number - 2
             for other_suit in set(board.NumberCard.Suit) - {card.suit}
         )
-        yield board_actions.GoalAction(
-            card=card,
-            source_id=index,
-            source_row_index=len(search_board.field[index]) - 1
-            if source == board.Position.Field
-            else None,
-            source_position=source,
-            goal_id=search_board.getGoalId(card.suit),
-            obvious=obvious,
+        result.append(
+            board_actions.GoalAction(
+                card=card,
+                source_id=index,
+                source_row_index=len(search_board.field[index]) - 1
+                if source == board.Position.Field
+                else None,
+                source_position=source,
+                goal_id=search_board.getGoalId(card.suit),
+                obvious=obvious,
+            )
         )
         break
+    yield from sorted(result, key=lambda x: x.card.number)
 
 
 def _can_stack(bottom: board.Card, top: board.Card) -> bool:
@@ -223,8 +227,8 @@ def possible_actions(search_board: board.Board) -> List[board_actions.Action]:
         *list(possible_bunkerize_actions(search_board)),
     ]
 
-    for x in result:
-        if x.automatic():
-            return [x]
+    for action in result:
+        if action.automatic():
+            return [action]
 
     return result
