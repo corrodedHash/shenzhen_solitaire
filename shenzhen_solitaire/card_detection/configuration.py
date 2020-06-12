@@ -99,10 +99,66 @@ def _save_adjustments(zip_file: zipfile.ZipFile, conf: Configuration) -> None:
     adjustments = {}
     adjustments[FIELD_ADJUSTMENT_KEY] = dataclasses.asdict(conf.field_adjustment)
     adjustments[BORDER_ADJUSTMENT_KEY] = dataclasses.asdict(conf.border_adjustment)
-
-    zip_file.writestr(
-        ADJUSTMENT_FILE_NAME, json.dumps(adjustment),
+    adjustments[GOAL_ADJUSTMENT_KEY] = dataclasses.asdict(conf.goal_adjustment)
+    adjustments[BUNKER_ADJUSTMENT_KEY] = dataclasses.asdict(conf.bunker_adjustment)
+    adjustments[HUA_ADJUSTMENT_KEY] = dataclasses.asdict(conf.hua_adjustment)
+    adjustments[SPECIAL_BUTTON_ADJUSTMENT_KEY] = dataclasses.asdict(
+        conf.special_button_adjustment
     )
+    print(adjustments)
+    zip_file.writestr(
+        ADJUSTMENT_FILE_NAME, json.dumps(adjustments),
+    )
+
+
+def _save_special_images(zip_file: zipfile.ZipFile, conf: Configuration) -> None:
+    def _save_special_image(
+        zip_file: zipfile.ZipFile, images: List[np.ndarray], directory: str
+    ) -> None:
+        for index, image in enumerate(images):
+            fd, myfile = tempfile.mkstemp(suffix=f".{PICTURE_EXTENSION}")
+            cv2.imwrite(myfile, image)
+            file_name = ""
+            zip_file.write(
+                myfile, arcname=f"{directory}/{index:03}.{PICTURE_EXTENSION}"
+            )
+
+    _save_special_image(zip_file, conf.card_border, CARD_BORDER_DIRECTORY)
+    _save_special_image(zip_file, conf.empty_card, EMPTY_CARD_DIRECTORY)
+    _save_special_image(zip_file, conf.green_card, GREEN_CARD_DIRECTORY)
+    _save_special_image(zip_file, conf.card_back, CARD_BACK_DIRECTORY)
+
+
+def _generate_special_button_filename(
+    state: ButtonState, special_card: board.SpecialCard
+) -> str:
+    state_char_map = {
+        ButtonState.normal: "n",
+        ButtonState.greyed: "g",
+        ButtonState.shiny: "s",
+    }
+    special_card_char_map = {
+        board.SpecialCard.Fa: "f",
+        board.SpecialCard.Zhong: "z",
+        board.SpecialCard.Bai: "b",
+    }
+    return f"{state_char_map[state]}{special_card_char_map[special_card]}"
+
+
+def _save_special_button_images(
+    zip_file: zipfile.ZipFile,
+    special_button_images: List[Tuple[ButtonState, board.SpecialCard, np.ndarray]],
+):
+    for index, (state, card, image) in enumerate(special_button_images):
+        fd, myfile = tempfile.mkstemp(suffix=f".{PICTURE_EXTENSION}")
+        cv2.imwrite(myfile, image)
+        file_name = ""
+        zip_file.write(
+            myfile,
+            arcname=f"{SPECIAL_BUTTON_DIRECTORY}/"
+            f"{_generate_special_button_filename(state,card)}"
+            f"{index:03}.{PICTURE_EXTENSION}",
+        )
 
 
 def save(conf: Configuration, filename: str) -> None:
@@ -112,7 +168,8 @@ def save(conf: Configuration, filename: str) -> None:
     with zipfile.ZipFile(zip_stream, "w") as zip_file:
         _save_adjustments(zip_file, conf)
         _save_catalogue(zip_file, conf.catalogue)
-    # TODO: Save card_borders and emtpy_card and green_card and special_buttons and card_back
+        _save_special_images(zip_file, conf)
+        _save_special_button_images(zip_file, conf.special_buttons)
     with open(filename, "wb") as zip_archive:
         zip_archive.write(zip_stream.getvalue())
 

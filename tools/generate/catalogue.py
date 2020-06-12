@@ -10,8 +10,8 @@ from shenzhen_solitaire.card_detection.configuration import Configuration
 def main() -> None:
     """Generate a configuration"""
     parser = argparse.ArgumentParser(
-        description="Generate pictures for symbols, "
-        "requires screenshot of field with no moved cards, "
+        description="Generate pictures for symbols. "
+        "Requires screenshot of field with no moved cards, "
         "so 8 columns of 5 cards each"
     )
     parser.add_argument(
@@ -31,12 +31,23 @@ def main() -> None:
     args = parser.parse_args()
     print(args.screenshot_path)
     image = cv2.imread(args.screenshot_path)
-
-    adj = adjustment.adjust_field(image)
-    squares = card_finder.get_field_squares(image, adj, 5, 8)
+    conf = configuration.load(args.config)
+    squares = card_finder.get_field_squares(image, conf.field_adjustment, 5, 8)
     catalogue = card_finder.catalogue_cards(squares)
-    generated_config = Configuration(field_adjustment=adj, catalogue=catalogue, meta={})
-    configuration.save(generated_config, args.config_path)
+    conf.card_border.extend(
+        card_finder.get_field_squares(image, conf.border_adjustment, 1, 1)
+    )
+    conf.green_card.extend(
+        card_finder.get_field_squares(image, conf.bunker_adjustment, 1, 3)
+    )
+    conf.green_card.extend(
+        card_finder.get_field_squares(image, conf.goal_adjustment, 1, 3)
+    )
+    conf.green_card.extend(
+        card_finder.get_field_squares(image, conf.hua_adjustment, 1, 1)
+    )
+    conf.catalogue.extend(catalogue)
+    configuration.save(conf, args.config_path)
 
 
 if __name__ == "__main__":

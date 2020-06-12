@@ -41,27 +41,30 @@ def adjust_squares(
 
     if not adjustment:
         adjustment = Adjustment(w=10, h=10)
+    high_speed = False
 
-    def _adjustment_step(keycode: int) -> None:
+    def _adjustment_step(keycode: int, high_speed: bool) -> None:
         assert adjustment is not None
-        x_keys = {81: -1, 83: +1, 104: -10, 115: +10}
-        y_keys = {82: -1, 84: +1, 116: -10, 110: +10}
+        x_keys = {104: -1, 115: +1}
+        y_keys = {116: -1, 110: +1}
         w_keys = {97: -1, 117: +1}
         h_keys = {111: -1, 101: +1}
         dx_keys = {59: -1, 112: +1}
         dy_keys = {44: -1, 46: +1}
+        high_speed_fac = 10
+        cur_high_speed_fac = high_speed_fac if high_speed else 1
         if keycode in x_keys:
-            adjustment.x += x_keys[keycode]
+            adjustment.x += x_keys[keycode] * cur_high_speed_fac
         elif keycode in y_keys:
-            adjustment.y += y_keys[keycode]
+            adjustment.y += y_keys[keycode] * cur_high_speed_fac
         elif keycode in w_keys:
-            adjustment.w += w_keys[keycode]
+            adjustment.w += w_keys[keycode] * cur_high_speed_fac
         elif keycode in h_keys:
-            adjustment.h += h_keys[keycode]
+            adjustment.h += h_keys[keycode] * cur_high_speed_fac
         elif keycode in dx_keys:
-            adjustment.dx += dx_keys[keycode]
+            adjustment.dx += dx_keys[keycode] * cur_high_speed_fac
         elif keycode in dy_keys:
-            adjustment.dy += dy_keys[keycode]
+            adjustment.dy += dy_keys[keycode] * cur_high_speed_fac
 
     while True:
         working_image = image.copy()
@@ -75,7 +78,10 @@ def adjust_squares(
         print(keycode)
         if keycode == 27:
             break
-        _adjustment_step(keycode)
+        if keycode == 229:
+            high_speed = not high_speed
+            continue
+        _adjustment_step(keycode, high_speed)
 
     cv2.destroyWindow("Window")
     return adjustment

@@ -8,11 +8,19 @@ import numpy as np
 import shenzhen_solitaire.card_detection.adjustment as adjustment
 import shenzhen_solitaire.card_detection.card_finder as card_finder
 from shenzhen_solitaire.card_detection.configuration import Configuration
+import argparse
 
 
 def main() -> None:
     """Generate a configuration"""
-    image = cv2.imread("pictures/20190809172213_1.jpg")
+
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('screenshot_path', metavar='screenshot_path', type=str,
+                    help='Path to the screenshot')
+
+    args = parser.parse_args()
+    print(args.screenshot_path)
+    image = cv2.imread(args.screenshot_path)
 
     border_adjustment = adjustment.adjust_squares(image, count_x=8, count_y=13)
     border_square_pos = adjustment.adjust_squares(
