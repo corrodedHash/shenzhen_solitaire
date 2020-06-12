@@ -105,7 +105,6 @@ def _save_adjustments(zip_file: zipfile.ZipFile, conf: Configuration) -> None:
     adjustments[SPECIAL_BUTTON_ADJUSTMENT_KEY] = dataclasses.asdict(
         conf.special_button_adjustment
     )
-    print(adjustments)
     zip_file.writestr(
         ADJUSTMENT_FILE_NAME, json.dumps(adjustments),
     )

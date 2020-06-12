@@ -1,12 +1,13 @@
 import time
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 
 import pyautogui
 import shenzhen_solitaire.board as board
 import shenzhen_solitaire.card_detection.adjustment as adjustment
 import shenzhen_solitaire.card_detection.configuration as configuration
-import shenzhen_solitaire.solver.board_actions as board_actions
 import warnings
+
+from dataclasses import dataclass
 
 
 def drag(
@@ -50,80 +51,73 @@ def clickSquare(
     )
 
 
-def handle_action(
-    action: board_actions.Action,
-    offset: Tuple[int, int],
-    conf: configuration.Configuration,
-) -> None:
-    if isinstance(action, board_actions.MoveAction):
-        src = adjustment.get_square(
-            conf.field_adjustment,
-            index_x=action.source_id,
-            index_y=action.source_row_index,
+@dataclass
+class DragAction:
+    source: Tuple[int, int]
+    destination: Tuple[int, int]
+
+
+@dataclass
+class ClickAction:
+    destination: Tuple[int, int]
+
+
+class WaitAction:
+    pass
+
+
+def _parse_field(
+    field: Dict[str, Any], conf: configuration.Configuration
+) -> Tuple[int, int]:
+    return (
+        int(field["column"]) * conf.field_adjustment.dx + conf.field_adjustment.x,
+        int(field["row"]) * conf.field_adjustment.dy + conf.field_adjustment.y,
+    )
+
+
+def parse_action(action: Dict[str, Any], conf: configuration.Configuration):
+    assert len(action) == 1
+    action_name, info = next(iter(action.items()))
+    action_name = action_name.lower()
+    if action_name == "bunkerize":
+        field = _parse_field(info["field_position"], conf)
+        bunker = (
+            int(info["bunker_slot_index"]) * conf.bunker_adjustment.dx
+            + conf.bunker_adjustment.x,
+            conf.bunker_adjustment.y,
         )
-        dst = adjustment.get_square(
-            conf.field_adjustment,
-            index_x=action.destination_id,
-            index_y=action.destination_row_index,
-        )
-        dragSquare(src, dst, offset)
-        return
-    if isinstance(action, board_actions.HuaKillAction):
-        warnings.warn("Hua kill should be handled before handle_action")
-        return
-    if isinstance(action, board_actions.BunkerizeAction):
-        field = adjustment.get_square(
-            conf.field_adjustment,
-            index_x=action.field_id,
-            index_y=action.field_row_index,
-        )
-        bunker = adjustment.get_square(
-            conf.bunker_adjustment, index_x=action.bunker_id, index_y=0,
-        )
-        if action.to_bunker:
-            dragSquare(field, bunker, offset)
+        if str(info["to_bunker"]).lower() == "true":
+            return DragAction(source=field, destination=bunker)
         else:
-            dragSquare(bunker, field, offset)
-        return
-    if isinstance(action, board_actions.DragonKillAction):
-        dragon_sequence = [
-            board.SpecialCard.Zhong,
-            board.SpecialCard.Fa,
-            board.SpecialCard.Bai,
-        ]
-        field = adjustment.get_square(
-            conf.special_button_adjustment,
-            index_x=0,
-            index_y=dragon_sequence.index(action.dragon),
+            return DragAction(source=bunker, destination=field)
+    elif action_name == "move":
+        return DragAction(
+            source=_parse_field(info["source"], conf),
+            destination=_parse_field(info["source"], conf),
         )
-        clickSquare(
-            field, offset,
+    elif action_name == "dragonkill":
+        return ClickAction()
+    elif action_name == "goal":
+        goal = (
+            int(info["goal_slot_index"]) * conf.goal_adjustment.dx
+            + conf.goal_adjustment.x,
+            conf.goal_adjustment.y,
         )
-        time.sleep(1)
-        return
-    if isinstance(action, board_actions.GoalAction):
-        dst = adjustment.get_square(
-            conf.goal_adjustment, index_x=action.goal_id, index_y=0,
-        )
-        if action.source_position == board.Position.Field:
-            assert action.source_row_index is not None
-            src = adjustment.get_square(
-                conf.field_adjustment,
-                index_x=action.source_id,
-                index_y=action.source_row_index,
-            )
+        if "Field" in info["source"]:
+            source = _parse_field(info["source"]["Field"], conf)
         else:
-            assert action.source_position == board.Position.Bunker
-            src = adjustment.get_square(
-                conf.bunker_adjustment, index_x=action.source_id, index_y=0,
+            source = (
+                int(info["source"]["Bunker"]["slot_index"]) * conf.bunker_adjustment.dx
+                + conf.bunker_adjustment.x,
+                conf.bunker_adjustment.y,
             )
-        dragSquare(src, dst, offset)
-        return
-    raise AssertionError("You forgot an Action type")
+        return DragAction(source=source, destination=goal)
+    elif action_name == "huakill":
+        return WaitAction()
 
 
 def handle_actions(
-    actions: List[board_actions.Action],
+    actions: List[Dict[str, Dict[str, Any]]],
     offset: Tuple[int, int],
     conf: configuration.Configuration,
 ) -> None:

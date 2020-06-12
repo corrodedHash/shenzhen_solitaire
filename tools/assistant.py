@@ -1,19 +1,19 @@
+import argparse
 import os
+import subprocess
 import tempfile
 import time
 from pathlib import Path
-from typing import List
-
+from typing import List, Dict, Any
+import json
 import cv2
 import numpy as np
 import pyautogui
 
 import shenzhen_solitaire.card_detection.configuration as configuration
 import shenzhen_solitaire.clicker as clicker
-import shenzhen_solitaire.solver.solver as solver
 from shenzhen_solitaire.board import Board
 from shenzhen_solitaire.card_detection.board_parser import parse_start_board
-from shenzhen_solitaire.solver.board_actions import Action
 
 OFFSET = (0, 0)
 # SIZE = (2560, 1440)
@@ -22,39 +22,29 @@ NEW_BUTTON = (1900, 1100)
 
 SAVE_UNSOLVED = False
 UNSOLVED_DIR = "E:/shenzhen-solitaire/unsolved"
+SOLVER_PATH = '/home/lukas/documents/coding/rust/shenzhen-solitaire/target/release/solver'
 
+def extern_solve(board: Board) -> List[Dict[str, Any]]:
+    result = subprocess.run([SOLVER_PATH], input=board.to_json(), capture_output=True, text=True)
+    return json.loads(result.stdout)
 
-def extern_solve(board: Board) -> List[Action]:
-    pass
-
-
-def solve(conf: configuration.Configuration) -> None:
+def take_screenshot() :
     with tempfile.TemporaryDirectory(prefix="shenzhen_solitaire") as screenshot_dir:
         print("Taking screenshot")
         screenshot_file = Path(screenshot_dir) / "screenshot.png"
         screenshot = pyautogui.screenshot(region=(*OFFSET, *SIZE))
         screenshot.save(screenshot_file)
         image = cv2.imread(str(screenshot_file))
-        input()
+    return image
 
-    print("Solving")
+def solve(conf: configuration.Configuration) -> None:
+    image = take_screenshot()
     board = parse_start_board(image, conf)
-    print(board.to_json())
     assert board.check_correct()
-    input()
-    solution_iterator = next(solver.solve(board, timeout=10, verbose=True), None)
-    if solution_iterator is None:
-        clicker.click(NEW_BUTTON, OFFSET)
-        time.sleep(10)
-        if SAVE_UNSOLVED:
-            fd, outfile = tempfile.mkstemp(dir=UNSOLVED_DIR, suffix=".png")
-            sock = os.fdopen(fd, "w")
-            sock.close()
-            cv2.imwrite(outfile, image)
-        return
-    solution = list(solution_iterator)
-    print(f"Solved in {len(solution)} steps")
-    clicker.handle_actions(solution, OFFSET, conf)
+    actions = extern_solve(board)
+    assert 0
+    print(f"Solved in {len(actions)} steps")
+    clicker.handle_actions(actions, OFFSET, conf)
     print("Solved")
     time.sleep(2)
     clicker.click(NEW_BUTTON, OFFSET)
@@ -62,8 +52,18 @@ def solve(conf: configuration.Configuration) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Solve board"
+    )
+    parser.add_argument(
+        "config_path",
+        type=str,
+        help="Config path",
+    )
+
+    args = parser.parse_args()
     time.sleep(3)
-    conf = configuration.load("test_config.zip")
+    conf = configuration.load(args.config_path)
     while True:
         solve(conf)
 

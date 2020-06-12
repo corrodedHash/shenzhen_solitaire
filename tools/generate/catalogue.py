@@ -2,7 +2,7 @@ import argparse
 
 import cv2
 import numpy as np
-
+import copy
 from shenzhen_solitaire.card_detection import configuration, adjustment, card_finder
 from shenzhen_solitaire.card_detection.configuration import Configuration
 
@@ -31,11 +31,19 @@ def main() -> None:
     args = parser.parse_args()
     image = cv2.imread(args.screenshot_path)
     conf = configuration.load(args.config_path)
+
     squares = card_finder.get_field_squares(image, conf.field_adjustment, 5, 8)
     catalogue = card_finder.catalogue_cards(squares)
+    conf.catalogue.extend(catalogue)
+
     conf.card_border.extend(
         card_finder.get_field_squares(image, conf.border_adjustment, 1, 1)
     )
+
+    empty_adjust = copy.deepcopy(conf.border_adjustment)
+    empty_adjust.y = empty_adjust.y + 4 * empty_adjust.dy
+    conf.empty_card.extend(card_finder.get_field_squares(image, empty_adjust, 1, 1))
+
     conf.green_card.extend(
         card_finder.get_field_squares(image, conf.bunker_adjustment, 1, 3)
     )
@@ -45,7 +53,7 @@ def main() -> None:
     conf.green_card.extend(
         card_finder.get_field_squares(image, conf.hua_adjustment, 1, 1)
     )
-    conf.catalogue.extend(catalogue)
+
     configuration.save(conf, args.config_path)
 
 
