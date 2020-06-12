@@ -21,7 +21,7 @@ def main() -> None:
         help="Path to the screenshot",
     )
     parser.add_argument(
-        "--conf",
+        "--config",
         dest="config_path",
         type=str,
         default="config.zip",
@@ -29,9 +29,8 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    print(args.screenshot_path)
     image = cv2.imread(args.screenshot_path)
-    conf = configuration.load(args.config)
+    conf = configuration.load(args.config_path)
     squares = card_finder.get_field_squares(image, conf.field_adjustment, 5, 8)
     catalogue = card_finder.catalogue_cards(squares)
     conf.card_border.extend(

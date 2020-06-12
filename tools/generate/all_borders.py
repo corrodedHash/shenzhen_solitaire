@@ -49,25 +49,30 @@ def main() -> None:
         image, count_x=8, count_y=13, adjustment=copy.deepcopy(conf.field_adjustment)
     )
     print("Field borders")
-    border_adjustment = adjustment.adjust_squares(
+    conf.border_adjustment = adjustment.adjust_squares(
         image, count_x=8, count_y=13, adjustment=copy.deepcopy(conf.field_adjustment)
     )
-    conf.bunker_adjustment.w = conf.field_adjustment.w
-    conf.bunker_adjustment.h = conf.field_adjustment.h
+    for adj in (conf.bunker_adjustment, conf.goal_adjustment,conf.hua_adjustment):
+        adj.w = conf.field_adjustment.w
+        adj.h = conf.field_adjustment.h
+        adj.dx = conf.field_adjustment.dx
+        adj.dy = conf.field_adjustment.dy
+
+    conf.bunker_adjustment.x = conf.field_adjustment.x
     print("Bunker cards")
-    bunker_adjustment = adjustment.adjust_squares(
+    conf.bunker_adjustment = adjustment.adjust_squares(
         image, count_x=3, count_y=1, adjustment=copy.deepcopy(conf.bunker_adjustment)
     )
-    conf.goal_adjustment.w = conf.field_adjustment.w
-    conf.goal_adjustment.h = conf.field_adjustment.h
+
+    conf.goal_adjustment.x = conf.field_adjustment.x + 5 * conf.field_adjustment.dx
+    conf.goal_adjustment.y = conf.bunker_adjustment.y
     print("Goal cards")
-    goal_adjustment = adjustment.adjust_squares(
+    conf.goal_adjustment = adjustment.adjust_squares(
         image, count_x=3, count_y=1, adjustment=copy.deepcopy(conf.goal_adjustment)
     )
-    conf.hua_adjustment.w = conf.field_adjustment.w
-    conf.hua_adjustment.h = conf.field_adjustment.h
+    conf.hua_adjustment.y = conf.bunker_adjustment.y
     print("Hua card")
-    hua_adjustment = adjustment.adjust_squares(
+    conf.hua_adjustment = adjustment.adjust_squares(
         image, count_x=1, count_y=1, adjustment=copy.deepcopy(conf.hua_adjustment)
     )
 

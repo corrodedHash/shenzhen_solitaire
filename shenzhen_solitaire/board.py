@@ -3,7 +3,7 @@ import enum
 import itertools
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple, Union
-
+import json
 
 class SpecialCard(enum.Enum):
     """Different types of special cards"""
@@ -50,6 +50,27 @@ class Position(enum.Enum):
     Bunker = enum.auto()
     Goal = enum.auto()
 
+def _field_card_to_str(card: Card):
+    if card == SpecialCard.Hua:
+        return "Hua"
+    if isinstance(card, SpecialCard):
+        return {"Special": card.name}
+    elif isinstance(card, NumberCard):
+        return {"Number": {"value": card.number, "suit": card.suit.name}}
+
+
+def _bunker_card_to_str(card: Union[Tuple[SpecialCard, int], Optional[Card]]):
+    if card is None:
+        return "Empty"
+    if isinstance(card, tuple):
+        return {"Blocked": card[0].name}
+    return {"Stashed": _field_card_to_str(card)}
+
+
+def _goal_card_to_str(card: Optional[NumberCard]):
+    if card is None:
+        return None
+    return {"value": card.number, "suit": card.suit.name}
 
 class Board:
     """Solitaire board"""
@@ -187,3 +208,12 @@ class Board:
                 if count != 4:
                     return False
         return True
+
+    def to_json(self) -> str:
+        mystruct = {
+            "field": [[_field_card_to_str(card) for card in row] for row in self.field],
+            "hua_set": self.flower_gone,
+            "bunker": [_bunker_card_to_str(card) for card in self.bunker],
+            "goal": [_goal_card_to_str(card) for card in self.goal],
+        }
+        return json.dumps(mystruct)

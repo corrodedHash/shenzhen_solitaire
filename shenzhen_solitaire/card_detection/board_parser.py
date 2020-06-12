@@ -36,7 +36,6 @@ def get_field_square_iterator(
     """Return iterator for both the square, as well as the matching card border"""
     my_adj = fake_adjustment(conf.field_adjustment)
     my_border_adj = fake_adjustment(conf.border_adjustment)
-
     squares = card_finder.get_field_squares(
         image, my_adj, count_x=row_count, count_y=column_count
     )
@@ -50,7 +49,6 @@ def get_field_square_iterator(
 
 def match_template(template: np.ndarray, search_image: np.ndarray) -> float:
     """Return matchiness for the template on the search image"""
-
     res = cv2.matchTemplate(search_image, template, cv2.TM_CCOEFF_NORMED)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
     assert isinstance(max_val, (int, float))
@@ -64,7 +62,6 @@ def parse_field_square(
         (match_template(template, square), name) for template, name in conf.catalogue
     ]
     best_val, best_name = max(square_fits, key=lambda x: x[0])
-
     best_border = max(
         match_template(template=template, search_image=border)
         for template in conf.card_border
@@ -229,6 +226,14 @@ def parse_board(image: np.ndarray, conf: Configuration) -> Board:
     result.field = parse_field(image, conf)
     result.flower_gone = parse_hua(image, conf)
     result.bunker = parse_bunker(image, conf)
+    result.goal = parse_goal(image, conf)
+    return result
+
+def parse_start_board(image: np.ndarray, conf: Configuration) -> Board:
+    result = Board()
+    result.field = parse_field(image, conf)
+    result.flower_gone = parse_hua(image, conf)
+    result.bunker = [None] * 3
     result.goal = parse_goal(image, conf)
     return result
 
