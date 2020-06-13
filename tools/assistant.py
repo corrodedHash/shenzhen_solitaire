@@ -18,17 +18,24 @@ from shenzhen_solitaire.card_detection.board_parser import parse_start_board
 OFFSET = (0, 0)
 # SIZE = (2560, 1440)
 SIZE = (1366, 768)
-NEW_BUTTON = (1900, 1100)
+# NEW_BUTTON = (1900, 1100)
+NEW_BUTTON = (1340, 750)
 
 SAVE_UNSOLVED = False
 UNSOLVED_DIR = "E:/shenzhen-solitaire/unsolved"
-SOLVER_PATH = '/home/lukas/documents/coding/rust/shenzhen-solitaire/target/release/solver'
+SOLVER_PATH = (
+    "/home/lukas/documents/coding/rust/shenzhen-solitaire/target/release/solver"
+)
+
 
 def extern_solve(board: Board) -> List[Dict[str, Any]]:
-    result = subprocess.run([SOLVER_PATH], input=board.to_json(), capture_output=True, text=True)
+    result = subprocess.run(
+        [SOLVER_PATH], input=board.to_json(), capture_output=True, text=True
+    )
     return json.loads(result.stdout)
 
-def take_screenshot() :
+
+def take_screenshot():
     with tempfile.TemporaryDirectory(prefix="shenzhen_solitaire") as screenshot_dir:
         print("Taking screenshot")
         screenshot_file = Path(screenshot_dir) / "screenshot.png"
@@ -36,6 +43,7 @@ def take_screenshot() :
         screenshot.save(screenshot_file)
         image = cv2.imread(str(screenshot_file))
     return image
+
 
 def solve(conf: configuration.Configuration) -> None:
     image = take_screenshot()
@@ -52,16 +60,20 @@ def solve(conf: configuration.Configuration) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Solve board"
+    parser = argparse.ArgumentParser(description="Solve board")
+    parser.add_argument(
+        "config_path", type=str, help="Config path",
     )
     parser.add_argument(
-        "config_path",
-        type=str,
-        help="Config path",
+        "--no-failsafe",
+        dest="no_failsafe",
+        action="store_false",
+        help="Enable 0.1 second delay between all actions to allow user to interrupt",
     )
-
     args = parser.parse_args()
+
+    if not args.no_failsafe:
+        pyautogui.PAUSE = 0
     time.sleep(3)
     conf = configuration.load(args.config_path)
     while True:

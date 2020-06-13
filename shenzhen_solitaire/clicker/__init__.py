@@ -10,28 +10,36 @@ import warnings
 from dataclasses import dataclass
 from shenzhen_solitaire.board import SpecialCard
 
-DRAG_DURATION = 0.4
-CLICK_DURATION = 0.5
+DRAG_DURATION = 0.2
+CLICK_DURATION = 1
+DRAGON_WAIT = 1
+HUA_WAIT = 1
+GOAL_WAIT = 0.4
 
 
 def drag(
     src: Tuple[int, int], dst: Tuple[int, int], offset: Tuple[int, int] = (0, 0)
 ) -> None:
 
+    time.sleep(DRAG_DURATION / 3)
     pyautogui.moveTo(x=src[0] + offset[0], y=src[1] + offset[1])
-    pyautogui.dragTo(
-        x=dst[0] + offset[0],
-        y=dst[1] + offset[1],
-        duration=DRAG_DURATION,
-        tween=lambda x: 0 if x < 0.5 else 1,
+    pyautogui.mouseDown()
+    time.sleep(DRAG_DURATION / 3)
+    pyautogui.moveTo(
+        x=dst[0] + offset[0], y=dst[1] + offset[1],
     )
+    pyautogui.mouseUp()
+    time.sleep(DRAG_DURATION / 3)
 
 
 def click(point: Tuple[int, int], offset: Tuple[int, int] = (0, 0)) -> None:
+    time.sleep(CLICK_DURATION / 3)
     pyautogui.moveTo(x=point[0] + offset[0], y=point[1] + offset[1])
     pyautogui.mouseDown()
-    time.sleep(CLICK_DURATION)
+    time.sleep(CLICK_DURATION / 3)
     pyautogui.mouseUp()
+    time.sleep(CLICK_DURATION / 3)
+    time.sleep(DRAGON_WAIT)
 
 
 @dataclass
@@ -44,9 +52,9 @@ class DragAction:
 class ClickAction:
     destination: Tuple[int, int]
 
-
+@dataclass
 class WaitAction:
-    pass
+    duration: float
 
 
 def _parse_field(
@@ -106,15 +114,24 @@ def parse_action(
             )
         )
     elif action_name == "goal":
-        obvious = (
-            goal_values[info["card"]["suit"].lower()] <= min(goal_values.values()) + 1
-        )
-        assert (goal_values[info["card"]["suit"].lower()] == 0) or (
-            goal_values[info["card"]["suit"].lower()] + 1 == info["card"]["value"]
-        )
-        goal_values[info["card"]["suit"].lower()] = info["card"]["value"]
+
+        current_value = goal_values[info["card"]["suit"].lower()]
+        proposed_value = info["card"]["value"]
+
+        assert (current_value == 0) or (current_value + 1 == proposed_value)
+
+        if proposed_value == min(goal_values.values()) + 1:
+            obvious = True
+        elif proposed_value == 2:
+            obvious = True
+        else:
+            obvious = False
+        
+        goal_values[info["card"]["suit"].lower()] = proposed_value
+        
         if obvious:
-            return WaitAction()
+            return WaitAction(duration=GOAL_WAIT)
+
         goal = (
             int(info["goal_slot_index"]) * conf.goal_adjustment.dx
             + conf.goal_adjustment.x
@@ -132,7 +149,9 @@ def parse_action(
             )
         return DragAction(source=source, destination=goal)
     elif action_name == "huakill":
-        return WaitAction()
+        return WaitAction(duration=HUA_WAIT)
+    else:
+        assert 0
 
 
 def handle_actions(
@@ -141,9 +160,9 @@ def handle_actions(
     conf: configuration.Configuration,
 ) -> None:
     goal_values = {"red": 0, "black": 0, "green": 0}
-    action_tuples = [
+    action_tuples = (
         (action, parse_action(action, conf, goal_values)) for action in actions
-    ]
+    )
     for name, action in action_tuples:
         print(name)
         if isinstance(action, DragAction):
@@ -151,4 +170,4 @@ def handle_actions(
         elif isinstance(action, ClickAction):
             click(action.destination, offset)
         elif isinstance(action, WaitAction):
-            time.sleep(2)
+            time.sleep(action.duration)
