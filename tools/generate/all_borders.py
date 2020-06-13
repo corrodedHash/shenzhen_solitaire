@@ -75,6 +75,10 @@ def main() -> None:
     conf.hua_adjustment = adjustment.adjust_squares(
         image, count_x=1, count_y=1, adjustment=copy.deepcopy(conf.hua_adjustment)
     )
+    print("Special button")
+    conf.special_button_adjustment = adjustment.adjust_squares(
+        image, count_x=1, count_y=3, adjustment=copy.deepcopy(conf.special_button_adjustment)
+    )
 
     configuration.save(conf, args.config)
 

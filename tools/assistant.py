@@ -42,7 +42,7 @@ def solve(conf: configuration.Configuration) -> None:
     board = parse_start_board(image, conf)
     assert board.check_correct()
     actions = extern_solve(board)
-    assert 0
+    print(actions)
     print(f"Solved in {len(actions)} steps")
     clicker.handle_actions(actions, OFFSET, conf)
     print("Solved")
