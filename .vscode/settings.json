@@ -9,5 +9,12 @@
     "python.testing.pytestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.unittestEnabled": true,
-    "python.pythonPath": "/home/lukas/.local/share/virtualenvs/shenzhen-solitaire-nsu5dgrx/bin/python"
+    "python.linting.mypyArgs": [
+        "--ignore-missing-imports",
+        "--follow-imports=silent",
+        "--show-column-numbers",
+        "--strict"
+    ],
+    "python.linting.mypyEnabled": true,
+    "python.formatting.provider": "black"
 }
