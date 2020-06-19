@@ -65,6 +65,7 @@ def adjust_squares(
             adjustment.dx += dx_keys[keycode] * cur_high_speed_fac
         elif keycode in dy_keys:
             adjustment.dy += dy_keys[keycode] * cur_high_speed_fac
+    cv2.namedWindow("Window", flags=cv2.WINDOW_NORMAL)
 
     while True:
         working_image = image.copy()
