@@ -26,9 +26,7 @@ def prepare_image(image: np.array) -> np.array:
 
 def get_contour(image: np.array) -> np.array:
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    ret, edge_image = cv2.threshold(gray_image, 127, 255, cv2.THRESH_BINARY_INV)
-    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
-    edge_image = cv2.morphologyEx(edge_image, cv2.MORPH_CLOSE, kernel)
+    ret, edge_image = cv2.threshold(gray_image, 140, 255, cv2.THRESH_BINARY_INV)
     border_image(edge_image, size=1)
     contours, hierarchy = cv2.findContours(
         edge_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
@@ -123,7 +121,7 @@ def main() -> None:
     pc = configuration.load("test_config.zip")
     laptop = configuration.load("laptop_conf.zip")
     bla = [(i, t) for i, t in pc.catalogue if t == SpecialCard.Hua]
-    bla = pc.catalogue
+    # bla = pc.catalogue
     for pc_image, pc_card_type in bla:
         debug_match(pc_image, pc_card_type, laptop.catalogue)
 

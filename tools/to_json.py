@@ -4,7 +4,7 @@ import sys
 import cv2
 
 import shenzhen_solitaire.card_detection.configuration as configuration
-from shenzhen_solitaire.card_detection.board_parser import parse_to_json
+from shenzhen_solitaire.card_detection.board_parser import parse_board, parse_start_board
 
 
 def main() -> None:
@@ -13,13 +13,17 @@ def main() -> None:
     parser.add_argument(
         "--config", dest="config_path", type=str, help="Config path",
     )
+    parser.add_argument("--simple", action="store_true", help="Parse a start board, use when config is not complete")
 
     args = parser.parse_args()
     image = cv2.imread(args.board_path)
 
-    conf = configuration.load("test_config.zip")
+    conf = configuration.load(args.config_path)
 
-    print(parse_to_json(image, conf))
+    if args.simple:
+        print(parse_start_board(image, conf).to_json())
+    else:
+        print(parse_board(image, conf).to_json())
 
 
 if __name__ == "__main__":

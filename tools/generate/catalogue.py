@@ -1,9 +1,12 @@
 import argparse
+import copy
+import math
 
 import cv2
 import numpy as np
-import copy
-from shenzhen_solitaire.card_detection import configuration, adjustment, card_finder
+
+from shenzhen_solitaire.card_detection import (adjustment, card_finder,
+                                               configuration)
 from shenzhen_solitaire.card_detection.configuration import Configuration
 
 
@@ -41,7 +44,7 @@ def main() -> None:
     )
 
     empty_adjust = copy.deepcopy(conf.border_adjustment)
-    empty_adjust.y = empty_adjust.y + 4 * empty_adjust.dy
+    empty_adjust.y = math.floor(empty_adjust.y + 4 * empty_adjust.dy)
     conf.empty_card.extend(card_finder.get_field_squares(image, empty_adjust, 1, 1))
 
     conf.green_card.extend(

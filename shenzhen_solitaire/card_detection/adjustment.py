@@ -6,6 +6,7 @@ from typing import Optional, Tuple
 
 import cv2
 import numpy
+import math
 
 
 @dataclass
@@ -16,8 +17,8 @@ class Adjustment:
     y: int = 0
     w: int = 0
     h: int = 0
-    dx: int = 0
-    dy: int = 0
+    dx: float = 0
+    dy: float = 0
 
 
 def get_square(
@@ -25,10 +26,10 @@ def get_square(
 ) -> Tuple[int, int, int, int]:
     """Get one square from index and adjustment"""
     return (
-        adjustment.x + adjustment.dx * index_x,
-        adjustment.y + adjustment.dy * index_y,
-        adjustment.x + adjustment.w + adjustment.dx * index_x,
-        adjustment.y + adjustment.h + adjustment.dy * index_y,
+        math.floor(adjustment.x + adjustment.dx * index_x),
+        math.floor(adjustment.y + adjustment.dy * index_y),
+        math.floor(adjustment.x + adjustment.w + adjustment.dx * index_x),
+        math.floor(adjustment.y + adjustment.h + adjustment.dy * index_y),
     )
 
 
@@ -41,9 +42,10 @@ def adjust_squares(
 
     if not adjustment:
         adjustment = Adjustment(w=10, h=10)
-    high_speed = False
+    speed_mod = "n"
+    speed_mods = ["n", "s", "h"]
 
-    def _adjustment_step(keycode: int, high_speed: bool) -> None:
+    def _adjustment_step(keycode: int, speed_mod: str) -> None:
         assert adjustment is not None
         x_keys = {104: -1, 115: +1}
         y_keys = {116: -1, 110: +1}
@@ -51,8 +53,8 @@ def adjust_squares(
         h_keys = {111: -1, 101: +1}
         dx_keys = {59: -1, 112: +1}
         dy_keys = {44: -1, 46: +1}
-        high_speed_fac = 10
-        cur_high_speed_fac = high_speed_fac if high_speed else 1
+        speed_facs = {"n": 1, "s": 8, "h": 64}
+        cur_high_speed_fac = speed_facs[speed_mod]
         if keycode in x_keys:
             adjustment.x += x_keys[keycode] * cur_high_speed_fac
         elif keycode in y_keys:
@@ -62,9 +64,10 @@ def adjust_squares(
         elif keycode in h_keys:
             adjustment.h += h_keys[keycode] * cur_high_speed_fac
         elif keycode in dx_keys:
-            adjustment.dx += dx_keys[keycode] * cur_high_speed_fac
+            adjustment.dx += dx_keys[keycode] * cur_high_speed_fac * 1 / 8
         elif keycode in dy_keys:
-            adjustment.dy += dy_keys[keycode] * cur_high_speed_fac
+            adjustment.dy += dy_keys[keycode] * cur_high_speed_fac * 1 / 8
+
     cv2.namedWindow("Window", flags=cv2.WINDOW_NORMAL)
 
     while True:
@@ -72,7 +75,10 @@ def adjust_squares(
         for index_x, index_y in itertools.product(range(count_x), range(count_y)):
             square = get_square(adjustment, index_x, index_y)
             cv2.rectangle(
-                working_image, (square[0], square[1]), (square[2], square[3]), (0, 0, 0)
+                working_image,
+                (math.floor(square[0]), math.floor(square[1])),
+                (math.floor(square[2]), math.floor(square[3])),
+                (0, 0, 0),
             )
         cv2.imshow("Window", working_image)
         keycode = cv2.waitKey(0)
@@ -80,29 +86,9 @@ def adjust_squares(
         if keycode == 27:
             break
         if keycode == 229:
-            high_speed = not high_speed
+            speed_mod = speed_mods[(speed_mods.index(speed_mod) + 1) % len(speed_mods)]
             continue
-        _adjustment_step(keycode, high_speed)
+        _adjustment_step(keycode, speed_mod)
 
     cv2.destroyWindow("Window")
     return adjustment
-
-
-def adjust_field(image: numpy.ndarray) -> Adjustment:
-    """Open configuration grid for the field"""
-    return adjust_squares(image, 8, 13, Adjustment(42, 226, 15, 15, 119, 24))
-
-
-def adjust_bunker(image: numpy.ndarray) -> Adjustment:
-    """Open configuration grid for the bunker"""
-    return adjust_squares(image, 3, 1)
-
-
-def adjust_hua(image: numpy.ndarray) -> Adjustment:
-    """Open configuration grid for the flower card"""
-    return adjust_squares(image, 1, 1)
-
-
-def adjust_goal(image: numpy.ndarray) -> Adjustment:
-    """Open configuration grid for the goal"""
-    return adjust_squares(image, 3, 1)

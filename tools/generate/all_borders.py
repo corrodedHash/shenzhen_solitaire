@@ -2,6 +2,7 @@ import argparse
 import copy
 import dataclasses
 import json
+import math
 import os
 
 import cv2
@@ -48,28 +49,31 @@ def main() -> None:
     conf.field_adjustment = adjustment.adjust_squares(
         image, count_x=8, count_y=13, adjustment=copy.deepcopy(conf.field_adjustment)
     )
-    print("Field borders")
-    conf.border_adjustment = adjustment.adjust_squares(
-        image, count_x=8, count_y=13, adjustment=copy.deepcopy(conf.field_adjustment)
-    )
-    for adj in (conf.bunker_adjustment, conf.goal_adjustment,conf.hua_adjustment):
+    for adj in (
+        conf.bunker_adjustment,
+        conf.goal_adjustment,
+        conf.hua_adjustment,
+        conf.border_adjustment,
+    ):
         adj.w = conf.field_adjustment.w
         adj.h = conf.field_adjustment.h
         adj.dx = conf.field_adjustment.dx
         adj.dy = conf.field_adjustment.dy
+    print("Field borders")
+    conf.border_adjustment = adjustment.adjust_squares(
+        image, count_x=8, count_y=13, adjustment=copy.deepcopy(conf.border_adjustment)
+    )
 
     conf.bunker_adjustment.x = conf.field_adjustment.x
-    print("Bunker cards")
+    print("Bunker and goal cards")
     conf.bunker_adjustment = adjustment.adjust_squares(
-        image, count_x=3, count_y=1, adjustment=copy.deepcopy(conf.bunker_adjustment)
+        image, count_x=8, count_y=1, adjustment=copy.deepcopy(conf.bunker_adjustment)
+    )
+    conf.goal_adjustment = copy.deepcopy(conf.bunker_adjustment)
+    conf.goal_adjustment.x = math.floor(
+        conf.bunker_adjustment.x + conf.bunker_adjustment.dx * 5
     )
 
-    conf.goal_adjustment.x = conf.field_adjustment.x + 5 * conf.field_adjustment.dx
-    conf.goal_adjustment.y = conf.bunker_adjustment.y
-    print("Goal cards")
-    conf.goal_adjustment = adjustment.adjust_squares(
-        image, count_x=3, count_y=1, adjustment=copy.deepcopy(conf.goal_adjustment)
-    )
     conf.hua_adjustment.y = conf.bunker_adjustment.y
     print("Hua card")
     conf.hua_adjustment = adjustment.adjust_squares(
@@ -77,7 +81,10 @@ def main() -> None:
     )
     print("Special button")
     conf.special_button_adjustment = adjustment.adjust_squares(
-        image, count_x=1, count_y=3, adjustment=copy.deepcopy(conf.special_button_adjustment)
+        image,
+        count_x=1,
+        count_y=3,
+        adjustment=copy.deepcopy(conf.special_button_adjustment),
     )
 
     configuration.save(conf, args.config)

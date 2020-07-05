@@ -32,7 +32,6 @@ def get_field_squares(
 def catalogue_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
     """Run manual cataloging for given squares"""
     cv2.namedWindow("Catalogue", cv2.WINDOW_NORMAL)
-    cv2.waitKey(1)
     result: List[Tuple[np.ndarray, Card]] = []
     print("Card ID is [B]ai, [Z]hong, [F]a, [H]ua, [R]ed, [G]reen, [B]lack")
     print("Numbercard e.g. R3")
@@ -51,7 +50,7 @@ def catalogue_cards(squares: List[np.ndarray]) -> List[Tuple[np.ndarray, Card]]:
     for square in squares:
         while True:
             cv2.imshow("Catalogue", cv2.resize(square, (500, 500)))
-            cv2.waitKey(1)
+            cv2.waitKey(100)
             card_id = input("Card ID:").lower()
             card_type: Optional[Card] = None
             if len(card_id) == 1:
