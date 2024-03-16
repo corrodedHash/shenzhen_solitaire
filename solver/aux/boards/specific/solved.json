@@ -1,0 +1,10 @@
+{
+  "field": [[], [], [], [], [], [], [], []],
+  "goal": [
+    { "value": 9, "suit": "Black" },
+    { "value": 9, "suit": "Green" },
+    { "value": 9, "suit": "Red" }
+  ],
+  "hua_set": true,
+  "bunker": [{ "Blocked": null }, { "Blocked": null }, { "Blocked": null }]
+}
