@@ -1,6 +1,5 @@
 #![warn(
     clippy::all,
-    clippy::restriction,
     clippy::pedantic,
     clippy::nursery,
     clippy::cargo
@@ -15,7 +14,7 @@
     clippy::explicit_iter_loop
 )]
 // Way too pedantic
-#![allow(clippy::integer_arithmetic)]
+#![allow(clippy::arithmetic_side_effects)]
 // Useless
 #![allow(clippy::missing_inline_in_public_items, clippy::missing_const_for_fn)]
 // Useful for production
@@ -29,30 +28,38 @@
 #![allow(
   clippy::cast_possible_truncation,
   clippy::cast_possible_wrap,
-  clippy::option_unwrap_used,
+  clippy::unwrap_used,
   // clippy::result_unwrap_used,
   // clippy::wildcard_enum_match_arm
 )]
 #![allow(clippy::trivially_copy_pass_by_ref)]
 #![allow(dead_code)]
 
-#[test]
-#[ignore]
-fn struct_size_printer() {
-  macro_rules! print_size{
-    ($x:ty) => {
-      println!("{:30} {:3} {:3}", std::stringify!($x), std::mem::size_of::<$x>(), std::mem::align_of::<$x>());
+#[cfg(test)]
+mod test {
+    #[test]
+    #[ignore]
+    fn struct_size_printer() {
+        macro_rules! print_size {
+            ($x:ty) => {
+                println!(
+                    "{:30} {:3} {:3}",
+                    std::stringify!($x),
+                    std::mem::size_of::<$x>(),
+                    std::mem::align_of::<$x>()
+                );
+            };
+        }
+        print_size!(board::Board);
+        print_size!(board::BoardEqHash);
+        print_size!(actions::All);
+        print_size!(actions::DragonKill);
+        print_size!(actions::Move);
+        print_size!(actions::Bunkerize);
+        print_size!(actions::Goal);
+        print_size!(actions::HuaKill);
+        print_size!(board::FieldPosition);
+        print_size!(board::PositionNoGoal);
+        print_size!(board::CardType);
     }
-  }
-  print_size!(board::Board);
-  print_size!(board::BoardEqHash);
-  print_size!(actions::All);
-  print_size!(actions::DragonKill);
-  print_size!(actions::Move);
-  print_size!(actions::Bunkerize);
-  print_size!(actions::Goal);
-  print_size!(actions::HuaKill);
-  print_size!(board::FieldPosition);
-  print_size!(board::PositionNoGoal);
-  print_size!(board::CardType);
 }

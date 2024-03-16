@@ -24,21 +24,17 @@ struct Opt {
     /// Draw dependency graph in 'dot' format instead of actions instead of optimizing
     #[structopt(short, long)]
     graph: bool,
-
-    /// Prettify JSON output
-    #[structopt(short, long)]
-    pretty: bool,
+    // /// Prettify JSON output
+    // #[structopt(short, long)]
+    // pretty: bool,
 }
 
-fn optimize(
-    actions: &[actions::All],
-    verbose: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+fn optimize(actions: &[actions::All], verbose: bool) -> Result<String, Box<dyn std::error::Error>> {
     if verbose {
         eprintln!("Starting optimization at {} actions", actions.len());
     }
     let start_time = std::time::Instant::now();
-    let optimized_actions = action_optimization::optimize(&actions);
+    let optimized_actions = action_optimization::optimize(actions);
 
     if verbose {
         eprintln!(
@@ -48,7 +44,7 @@ fn optimize(
         );
     }
     let serialized_actions = serde_json::to_string(&optimized_actions)?;
-    
+
     return Result::Ok(serialized_actions);
 }
 

@@ -54,7 +54,7 @@ impl<'de> serde::Deserialize<'de> for FieldPosition {
         enum Field {
             Column,
             Row,
-        };
+        }
 
         struct FieldPositionVisitor;
 
@@ -62,7 +62,7 @@ impl<'de> serde::Deserialize<'de> for FieldPosition {
             type Value = FieldPosition;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                return formatter.write_str("struct FieldPosition")
+                return formatter.write_str("struct FieldPosition");
             }
 
             fn visit_seq<V>(self, mut seq: V) -> Result<FieldPosition, V::Error>
@@ -107,6 +107,6 @@ impl<'de> serde::Deserialize<'de> for FieldPosition {
         }
 
         const FIELDS: &[&str] = &["column", "row"];
-        return deserializer.deserialize_struct("Duration", FIELDS, FieldPositionVisitor)
+        return deserializer.deserialize_struct("Duration", FIELDS, FieldPositionVisitor);
     }
 }

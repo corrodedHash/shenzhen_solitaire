@@ -193,7 +193,7 @@ impl Board {
                 BunkerSlot::Blocked(Option::Some(card)) => {
                     CardType::Special(card.clone()).to_byte() | (1 << 5)
                 }
-                BunkerSlot::Blocked(Option::None) => (1 << 5),
+                BunkerSlot::Blocked(Option::None) => 1 << 5,
             };
             debug_assert!(bunker_byte < 64);
             squasher.squash(bunker_byte, 6);
