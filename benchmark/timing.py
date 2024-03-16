@@ -1,14 +1,5 @@
 import multiprocessing
-import tempfile
-import time
 from pathlib import Path
-
-import cv2
-import numpy as np
-
-import shenzhen_solitaire.card_detection.configuration as configuration
-import shenzhen_solitaire.solver.solver as solver
-from shenzhen_solitaire.card_detection.board_parser import parse_board
 
 from .util import run_benchmark
 
@@ -29,7 +20,6 @@ def main() -> None:
         )
         pool.close()
         pool.join()
-        
 
 
 if __name__ == "__main__":

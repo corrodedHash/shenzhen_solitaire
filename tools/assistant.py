@@ -30,7 +30,7 @@ SOLVER_PATH = (
 
 def extern_solve(board: Board) -> List[Dict[str, Any]]:
     result = subprocess.run(
-        [SOLVER_PATH], input=board.to_json(), capture_output=True, text=True
+        [SOLVER_PATH], input=board.to_json(), capture_output=True, text=True, check=True
     )
     return json.loads(result.stdout)
 
@@ -62,7 +62,9 @@ def solve(conf: configuration.Configuration) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Solve board")
     parser.add_argument(
-        "config_path", type=str, help="Config path",
+        "config_path",
+        type=str,
+        help="Config path",
     )
     parser.add_argument(
         "--no-failsafe",
